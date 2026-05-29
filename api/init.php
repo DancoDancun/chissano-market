@@ -1,0 +1,37 @@
+﻿<?php
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+
+$dataFile = __DIR__ . '/data.json';
+
+// Only initialize if file doesn't exist
+if (!file_exists($dataFile)) {
+    $defaultData = [
+        'animals' => [
+            ['id' => 1, 'type' => 'cattle', 'name' => 'Fresian Cow', 'breed' => 'Holstein Fresian', 'age' => '3 years', 'price' => 85000, 'stock' => 4, 'status' => 'available', 'location' => 'Nairobi', 'images' => ['https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600']],
+            ['id' => 2, 'type' => 'goats', 'name' => 'Boer Goat', 'breed' => 'Boer', 'age' => '1.5 years', 'price' => 12000, 'stock' => 10, 'status' => 'available', 'location' => 'Kiambu', 'images' => ['https://images.unsplash.com/photo-1524024973431-2ad916746881?w=600']],
+            ['id' => 3, 'type' => 'sheep', 'name' => 'Dorper Sheep', 'breed' => 'Dorper', 'age' => '2 years', 'price' => 15000, 'stock' => 6, 'status' => 'available', 'location' => 'Nakuru', 'images' => ['https://images.unsplash.com/photo-1484557985045-edf25e08da73?w=600']],
+            ['id' => 4, 'type' => 'poultry', 'name' => 'Kienyeji Chicken', 'breed' => 'Improved Kienyeji', 'age' => '6 months', 'price' => 800, 'stock' => 50, 'status' => 'available', 'location' => 'Machakos', 'images' => ['https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=600']],
+            ['id' => 5, 'type' => 'poultry', 'name' => 'Broiler Chicks', 'breed' => 'Cobb 500', 'age' => '4 weeks', 'price' => 500, 'stock' => 100, 'status' => 'reserved', 'location' => 'Thika', 'images' => ['https://images.unsplash.com/photo-1598504774559-8d8cc71ebc7d?w=600']],
+            ['id' => 6, 'type' => 'pigs', 'name' => 'Large White Pig', 'breed' => 'Large White', 'age' => '8 months', 'price' => 18000, 'stock' => 3, 'status' => 'available', 'location' => 'Nyeri', 'images' => ['https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=600']],
+            ['id' => 7, 'type' => 'dogs', 'name' => 'German Shepherd', 'breed' => 'German Shepherd', 'age' => '3 months', 'price' => 25000, 'stock' => 2, 'status' => 'available', 'location' => 'Nairobi', 'images' => ['https://images.unsplash.com/photo-1553882809-a4f57e59501d?w=600']],
+            ['id' => 8, 'type' => 'cats', 'name' => 'Persian Cat', 'breed' => 'Persian', 'age' => '4 months', 'price' => 15000, 'stock' => 0, 'status' => 'sold', 'location' => 'Mombasa', 'images' => ['https://images.unsplash.com/photo-1574158622682-e40e69881006?w=600']]
+        ],
+        'orders' => [],
+        'settings' => [
+            'businessName' => 'Chissano AnimalMarket',
+            'currency' => 'KSh',
+            'contactPhone' => '+254 724934269',
+            'contactEmail' => 'info@animalmarket.co.ke',
+            'businessLocation' => 'Nandi County, Kenya',
+            'businessHours' => 'Mon-Sat 8AM-6PM'
+        ],
+        'lastUpdated' => date('Y-m-d H:i:s')
+    ];
+    
+    file_put_contents($dataFile, json_encode($defaultData, JSON_PRETTY_PRINT));
+    echo json_encode(['success' => true, 'message' => 'Data initialized']);
+} else {
+    echo json_encode(['success' => false, 'message' => 'Data already exists']);
+}
+?>
