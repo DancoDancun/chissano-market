@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chissano AnimalMarket</title>
+    <title>Chissano AnimalMarket - Quality Domestic Animals</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -11,6 +11,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background: #f5f6fa; }
         .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+        .trust-bar { background: #F0FDF4; padding: 8px 0; text-align: center; font-size: 12px; color: #065F46; border-bottom: 1px solid #D1FAE5; }
         .navbar { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
         .navbar .container { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; }
         .logo { font-size: 20px; font-weight: 700; color: #059669; }
@@ -19,10 +20,12 @@
         .nav-links a:hover { background: #D1FAE5; color: #059669; }
         .hamburger { display: none; font-size: 28px; cursor: pointer; background: none; border: none; color: #374151; }
         .hero { background: linear-gradient(135deg, #059669, #10B981); color: white; padding: 60px 0; text-align: center; }
-        .hero h2 { font-size: 38px; } .search-bar { max-width: 500px; margin: 20px auto 0; display: flex; border-radius: 50px; overflow: hidden; }
+        .hero h2 { font-size: 38px; } .hero p { font-size: 16px; margin: 10px 0 20px; }
+        .search-bar { max-width: 500px; margin: 20px auto 0; display: flex; border-radius: 50px; overflow: hidden; }
         .search-bar input { flex: 1; padding: 14px 20px; border: none; font-size: 14px; outline: none; }
         .search-bar button { padding: 14px 25px; background: #1F2937; color: white; border: none; cursor: pointer; font-weight: 600; }
-        .filters { padding: 16px 0; background: white; } .filter-buttons { display: flex; flex-wrap: wrap; gap: 5px; }
+        .filters { padding: 16px 0; background: white; }
+        .filter-buttons { display: flex; flex-wrap: wrap; gap: 5px; }
         .filter-btn { padding: 7px 14px; border: 2px solid #E5E7EB; background: white; border-radius: 50px; cursor: pointer; font-size: 12px; font-weight: 500; font-family: 'Poppins', sans-serif; }
         .filter-btn.active { background: #059669; color: white; border-color: #059669; }
         .animals-section { padding: 30px 0; } .animals-section h2 { font-size: 26px; }
@@ -33,12 +36,24 @@
         .animals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
         .animal-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
         .animal-card img { width: 100%; height: 200px; object-fit: cover; }
-        .animal-info { padding: 14px; } .animal-type { display: inline-block; padding: 3px 8px; background: #D1FAE5; color: #065F46; border-radius: 12px; font-size: 10px; text-transform: uppercase; }
+        .animal-info { padding: 14px; }
+        .animal-type { display: inline-block; padding: 3px 8px; background: #D1FAE5; color: #065F46; border-radius: 12px; font-size: 10px; text-transform: uppercase; }
         .animal-name { font-size: 16px; font-weight: 700; } .animal-price { font-size: 20px; font-weight: 700; color: #059669; }
         .btn-order { width: 100%; padding: 10px; background: #059669; color: white; border: none; border-radius: 25px; cursor: pointer; font-size: 13px; font-weight: 600; }
         .btn-order:disabled { background: #D1D5DB; cursor: not-allowed; }
         .status-badge { padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 600; text-transform: uppercase; float: right; }
         .status-available { background: #D1FAE5; color: #065F46; } .status-reserved { background: #FEF3C7; color: #92400E; } .status-sold { background: #FEE2E2; color: #991B1B; }
+        .about-section { padding: 50px 0; background: white; }
+        .about-section h2 { font-size: 26px; margin-bottom: 18px; }
+        .about-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .about-text p { margin-bottom: 12px; color: #4B5563; line-height: 1.7; font-size: 14px; }
+        .about-features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .about-feature { background: #F0FDF4; padding: 16px; border-radius: 10px; text-align: center; border: 2px solid #D1FAE5; font-size: 13px; color: #065F46; font-weight: 600; }
+        .terms-section { padding: 50px 0; background: #F9FAFB; }
+        .terms-section h2 { font-size: 26px; margin-bottom: 18px; }
+        .terms-box { background: white; padding: 25px; border-radius: 12px; max-height: 400px; overflow-y: auto; font-size: 13px; }
+        .terms-box h3 { color: #059669; margin: 16px 0 8px; }
+        .terms-box p { color: #4B5563; line-height: 1.7; font-size: 13px; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.show { display: flex; } .modal-box { background: white; border-radius: 16px; padding: 25px; max-width: 460px; width: 90%; }
         .form-group { margin-bottom: 12px; } .form-group label { display: block; font-weight: 600; font-size: 12px; }
@@ -51,14 +66,17 @@
         .site-footer { background: #111827; color: #9CA3AF; padding: 35px 0 18px; text-align: center; }
         .whatsapp-float { position: fixed; bottom: 75px; right: 18px; background: #25D366; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; z-index: 99; text-decoration: none; }
         .admin-link { position: fixed; bottom: 18px; right: 18px; background: #1F2937; color: white; padding: 8px 18px; border-radius: 25px; text-decoration: none; font-size: 12px; z-index: 99; }
-        @media (max-width: 768px) { .hamburger{display:block} .nav-links{display:none;flex-direction:column;position:absolute;top:65px;left:0;right:0;background:white;padding:15px;z-index:200} .nav-links.show{display:flex} .hero h2{font-size:28px} }
+        @media (max-width: 768px) { .hamburger{display:block} .nav-links{display:none;flex-direction:column;position:absolute;top:65px;left:0;right:0;background:white;padding:15px;z-index:200} .nav-links.show{display:flex} .hero h2{font-size:28px} .about-content{grid-template-columns:1fr} }
     </style>
 </head>
 <body>
-<nav class="navbar"><div class="container"><h1 class="logo">Chissano AnimalMarket</h1><button class="hamburger" onclick="toggleMenu()">&#9776;</button><div class="nav-links" id="navMenu"><a href="#home">Home</a><a href="#animals">Animals</a><a href="#orders">My Orders</a><a href="#contact">Contact</a></div></div></nav>
-<header class="hero"><div class="container"><h2>Find Your Perfect Companion</h2><div class="search-bar"><input type="text" id="searchInput" placeholder="Search..."><button onclick="searchAnimals()">Search</button></div></div></header>
+<div class="trust-bar">Registered Business &nbsp;|&nbsp; Nationwide Delivery &nbsp;|&nbsp; Quality Guaranteed</div>
+<nav class="navbar"><div class="container"><h1 class="logo">Chissano AnimalMarket</h1><button class="hamburger" onclick="toggleMenu()">&#9776;</button><div class="nav-links" id="navMenu"><a href="#home">Home</a><a href="#animals">Animals</a><a href="#about">About Us</a><a href="#orders">My Orders</a><a href="#terms">Terms</a><a href="#contact">Contact</a></div></div></nav>
+<header class="hero" id="home"><div class="container"><h2>Find Your Perfect Companion</h2><p>Discover healthy domestic animals from trusted breeders across Kenya</p><div class="search-bar"><input type="text" id="searchInput" placeholder="Search..."><button onclick="searchAnimals()">Search</button></div></div></header>
 <section class="filters"><div class="container"><div class="filter-buttons"><button class="filter-btn active" onclick="filterAnimals('all')">All</button><button class="filter-btn" onclick="filterAnimals('cattle')">Cattle</button><button class="filter-btn" onclick="filterAnimals('goats')">Goats</button><button class="filter-btn" onclick="filterAnimals('sheep')">Sheep</button><button class="filter-btn" onclick="filterAnimals('poultry')">Poultry</button><button class="filter-btn" onclick="filterAnimals('pigs')">Pigs</button><button class="filter-btn" onclick="filterAnimals('dogs')">Dogs</button><button class="filter-btn" onclick="filterAnimals('cats')">Cats</button></div></div></section>
 <main class="animals-section" id="animals"><div class="container"><h2>Available Animals</h2><div class="avail-tags" id="availTags"></div><div class="animals-grid" id="animalsGrid"><p style="text-align:center;padding:40px;">Loading...</p></div></div></main>
+<section class="about-section" id="about"><div class="container"><h2>About Chissano AnimalMarket</h2><div class="about-content"><div class="about-text"><p><strong>Chissano AnimalMarket</strong> is a trusted provider of quality domestic animals in Kenya. We connect farmers and families with healthy, well-bred animals.</p><p>Our animals are vaccinated, dewormed, and ready for their new homes.</p><p><strong>Physical Address:</strong> Chissano Farm, Nandi County, along Kapsabet-Eldoret Road, Kenya.</p></div><div class="about-features"><div class="about-feature">Quality Guaranteed</div><div class="about-feature">Nationwide Delivery</div><div class="about-feature">Vaccinated Animals</div><div class="about-feature">Trusted Since 2020</div></div></div></div></section>
+<section class="terms-section" id="terms"><div class="container"><h2>Terms & Conditions</h2><div class="terms-box"><h3>1. Ordering</h3><p>Orders processed first-come, first-served. Confirmation via WhatsApp within 24 hours.</p><h3>2. Pricing</h3><p>All prices in KSh. Payment via M-Pesa, Bank Transfer, or Cash on Delivery.</p><h3>3. Delivery</h3><p>Nationwide delivery available. Fees vary by location. 24-72 hours delivery.</p><h3>4. Health Guarantee</h3><p>All animals vaccinated and dewormed. 48-hour health guarantee after delivery.</p><h3>5. Returns</h3><p>Returns accepted within 48 hours if health issues. Refund within 7 working days.</p><h3>6. Contact</h3><p>Phone: +254 724934269 | Chissano Farm, Nandi County, Kenya</p></div></div></section>
 <div class="modal" id="orderModal"><div class="modal-box"><button onclick="closeModal()" style="float:right;background:none;border:none;font-size:22px;cursor:pointer;">&times;</button><h2>Place Order</h2><form onsubmit="return submitOrder(event)"><input type="hidden" id="orderAnimalId"><div class="form-group"><label>Your Name *</label><input type="text" id="custName" required></div><div class="form-group"><label>Phone Number *</label><input type="tel" id="custPhone" required></div><div class="form-group"><label>Quantity</label><input type="number" id="orderQty" min="1" value="1"></div><button type="submit" class="btn-submit">Confirm Order</button></form></div></div>
 <section class="orders-section" id="orders"><div class="container"><h2>My Orders</h2><div id="ordersList"><p style="text-align:center;padding:30px;">No orders yet.</p></div></div></section>
 <section class="contact-section" id="contact"><div class="container"><h2>Get In Touch</h2><div class="contact-grid" id="contactGrid"></div></div></section>
