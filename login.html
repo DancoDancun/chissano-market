@@ -17,15 +17,20 @@
         .login-header p { color: #6B7280; font-size: 13px; margin-top: 5px; }
         .form-group { margin-bottom: 18px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 12px; color: #374151; }
-        .form-group input { width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 14px; font-family: 'Poppins', sans-serif; outline: none; }
+        .form-group input[type="text"], .form-group input[type="email"] { width: 100%; padding: 12px 16px; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 14px; font-family: 'Poppins', sans-serif; outline: none; }
         .form-group input:focus { border-color: #059669; }
+        .pass-wrapper { position: relative; }
+        .pass-wrapper input { width: 100%; padding: 12px 55px 12px 16px !important; border: 2px solid #E5E7EB; border-radius: 10px; font-size: 14px; font-family: 'Poppins', sans-serif; outline: none; }
+        .pass-wrapper input:focus { border-color: #059669; }
+        .pass-toggle { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: #F3F4F6; border: 1px solid #D1D5DB; border-radius: 6px; cursor: pointer; font-size: 11px; padding: 6px 10px; font-family: 'Poppins', sans-serif; color: #374151; font-weight: 500; }
+        .pass-toggle:hover { background: #E5E7EB; }
         .error-msg { background: #FEE2E2; color: #991B1B; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 15px; display: none; }
         .error-msg.show { display: block; }
         .success-msg { background: #D1FAE5; color: #065F46; padding: 10px 14px; border-radius: 8px; font-size: 12px; margin-bottom: 15px; display: none; }
         .success-msg.show { display: block; }
-        .btn-login { width: 100%; padding: 14px; background: #059669; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .btn-login { width: 100%; padding: 14px; background: #059669; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; }
         .btn-login:hover { background: #047857; }
-        .btn-login:disabled { opacity: 0.7; }
+        .btn-login:disabled { opacity: 0.7; cursor: not-allowed; }
         .login-footer { text-align: center; margin-top: 20px; }
         .login-footer a { color: #059669; text-decoration: none; font-size: 13px; font-weight: 500; }
         .step { display: none; } .step.active { display: block; }
@@ -50,7 +55,13 @@
         <div class="step active" id="step1">
             <form onsubmit="handleStep1(event)">
                 <div class="form-group"><label>Username</label><input type="text" id="username" placeholder="Enter username" required></div>
-                <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Enter password" required></div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <div class="pass-wrapper">
+                        <input type="password" id="password" placeholder="Enter password" required>
+                        <button type="button" class="pass-toggle" onclick="togglePass()">Show</button>
+                    </div>
+                </div>
                 <button type="submit" class="btn-login" id="btnStep1"><span class="btn-text">Continue</span><div class="spinner"></div></button>
             </form>
         </div>
@@ -69,34 +80,19 @@
     <div class="login-footer"><a href="index.html">&larr; Back to Marketplace</a></div>
 
     <script>
-        // Firebase Init
-        firebase.initializeApp({
-            apiKey: "AIzaSyBKjmmBhRTMypUzCYdbrzHSOsAxx6EJYKI",
-            authDomain: "chissano-market.firebaseapp.com",
-            projectId: "chissano-market",
-            storageBucket: "chissano-market.firebasestorage.app",
-            messagingSenderId: "91066215347",
-            appId: "1:91066215347:web:60c02df70217910c25b9c6"
-        });
+        firebase.initializeApp({apiKey:"AIzaSyBKjmmBhRTMypUzCYdbrzHSOsAxx6EJYKI",authDomain:"chissano-market.firebaseapp.com",projectId:"chissano-market",storageBucket:"chissano-market.firebasestorage.app",messagingSenderId:"91066215347",appId:"1:91066215347:web:60c02df70217910c25b9c6"});
         var auth = firebase.auth();
-        
-        var currentCode = '';
-        var codeExpiry = 0;
-        var adminEmail = '';
-        var adminPassword = '';
+        var currentCode = '', codeExpiry = 0, adminEmail = '', adminPassword = '';
 
-        function getEmailSettings() {
-            var saved = localStorage.getItem('emailjsSettings');
-            return saved ? JSON.parse(saved) : null;
-        }
+        function getEmailSettings() { var s = localStorage.getItem('emailjsSettings'); return s ? JSON.parse(s) : null; }
+        function getCredentials() { var s = localStorage.getItem('adminCredentials'); return s ? JSON.parse(s) : { username: 'admin', password: 'admin123' }; }
+        function generateCode() { return Math.floor(100000 + Math.random() * 900000).toString(); }
 
-        function getCredentials() {
-            var saved = localStorage.getItem('adminCredentials');
-            return saved ? JSON.parse(saved) : { username: 'admin', password: 'admin123' };
-        }
-
-        function generateCode() {
-            return Math.floor(100000 + Math.random() * 900000).toString();
+        function togglePass() {
+            var p = document.getElementById('password');
+            var btn = event.target;
+            if (p.type === 'password') { p.type = 'text'; btn.textContent = 'Hide'; }
+            else { p.type = 'password'; btn.textContent = 'Show'; }
         }
 
         function handleStep1(e) {
@@ -107,13 +103,12 @@
             var error = document.getElementById('errorMsg');
             var btn = document.getElementById('btnStep1');
             btn.classList.add('loading');
-            
             setTimeout(function() {
                 if (user === creds.username && pass === creds.password) {
                     error.classList.remove('show');
                     adminPassword = pass;
-                    var emailSettings = getEmailSettings();
-                    adminEmail = (emailSettings && emailSettings.adminEmail) ? emailSettings.adminEmail : 'admin@chissano.co.ke';
+                    var es = getEmailSettings();
+                    adminEmail = (es && es.adminEmail) ? es.adminEmail : 'admin@chissano.co.ke';
                     showStep2();
                     sendVerificationCode();
                 } else {
@@ -134,34 +129,22 @@
         function sendVerificationCode() {
             currentCode = generateCode();
             codeExpiry = Date.now() + 300000;
-            var settings = getEmailSettings();
+            var s = getEmailSettings();
             var note = document.getElementById('codeNote');
-            
-            if (settings && settings.publicKey && settings.serviceId && settings.templateId && settings.adminEmail) {
-                adminEmail = settings.adminEmail;
-                emailjs.init(settings.publicKey);
+            if (s && s.publicKey && s.serviceId && s.templateId && s.adminEmail) {
+                adminEmail = s.adminEmail;
+                emailjs.init(s.publicKey);
                 note.textContent = 'Sending code to ' + adminEmail + '...';
                 note.className = 'code-note';
-                
-                emailjs.send(settings.serviceId, settings.templateId, {
-                    to_email: adminEmail,
-                    to_name: 'Admin',
-                    code: currentCode,
-                    expiry: '5 minutes'
-                }).then(function() {
-                    note.innerHTML = 'Code sent to <strong>' + adminEmail + '</strong>. Check your inbox.';
-                }).catch(function(err) {
-                    console.log('EmailJS error:', err);
-                    showFallbackCode();
-                });
-            } else {
-                showFallbackCode();
-            }
+                emailjs.send(s.serviceId, s.templateId, { to_email: adminEmail, to_name: 'Admin', code: currentCode, expiry: '5 minutes' })
+                    .then(function() { note.innerHTML = 'Code sent to <strong>' + adminEmail + '</strong>.'; })
+                    .catch(function() { showFallbackCode(); });
+            } else { showFallbackCode(); }
         }
 
         function showFallbackCode() {
             var note = document.getElementById('codeNote');
-            note.innerHTML = '<strong>DEV MODE</strong><br>Your code: <span style="font-size:24px;font-weight:700;color:#059669;">' + currentCode + '</span><br><small>Configure EmailJS in Admin Settings</small>';
+            note.innerHTML = '<strong>DEV MODE</strong><br>Code: <span style="font-size:24px;font-weight:700;color:#059669;">' + currentCode + '</span>';
             note.className = 'code-note dev';
         }
 
@@ -172,49 +155,26 @@
             var success = document.getElementById('successMsg');
             var btn = document.getElementById('btnStep2');
             btn.classList.add('loading');
-            
             setTimeout(function() {
-                if (Date.now() > codeExpiry) {
-                    error.textContent = 'Code expired. Please resend.';
-                    error.classList.add('show');
-                    btn.classList.remove('loading');
-                    return;
-                }
+                if (Date.now() > codeExpiry) { error.textContent = 'Code expired.'; error.classList.add('show'); btn.classList.remove('loading'); return; }
                 if (entered === currentCode) {
                     error.classList.remove('show');
-                    success.textContent = 'Login successful! Redirecting...';
+                    success.textContent = 'Login successful!';
                     success.classList.add('show');
-                    
-                    // Sign in to Firebase Auth
-                    auth.signInWithEmailAndPassword(adminEmail, adminPassword).then(function() {
-                        finishLogin();
-                    }).catch(function(err) {
-                        // If user doesn't exist, create them
-                        if (err.code === 'auth/user-not-found') {
-                            auth.createUserWithEmailAndPassword(adminEmail, adminPassword).then(function() {
-                                finishLogin();
-                            }).catch(function(e) {
-                                finishLogin(); // Login anyway
-                            });
-                        } else {
-                            finishLogin(); // Login anyway
-                        }
+                    auth.signInWithEmailAndPassword(adminEmail, adminPassword).catch(function() {
+                        auth.createUserWithEmailAndPassword(adminEmail, adminPassword).catch(function(){});
                     });
+                    localStorage.setItem('adminToken', btoa('admin:' + Date.now()));
+                    localStorage.setItem('adminTokenExpiry', (Date.now() + 86400000).toString());
+                    localStorage.setItem('adminUser', 'admin');
+                    setTimeout(function() { window.location.href = 'admin.html'; }, 500);
                 } else {
-                    error.textContent = 'Invalid code. Please try again.';
+                    error.textContent = 'Invalid code.';
                     error.classList.add('show');
                     document.getElementById('verifyCode').value = '';
                     btn.classList.remove('loading');
                 }
             }, 500);
-        }
-
-        function finishLogin() {
-            var token = btoa('admin:' + Date.now());
-            localStorage.setItem('adminToken', token);
-            localStorage.setItem('adminTokenExpiry', (Date.now() + 86400000).toString());
-            localStorage.setItem('adminUser', 'admin');
-            setTimeout(function() { window.location.href = 'admin.html'; }, 500);
         }
 
         function goBack() {
