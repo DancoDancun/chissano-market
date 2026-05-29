@@ -1,10 +1,12 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Chissano AnimalMarket</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -67,9 +69,21 @@
     <div class="login-footer"><a href="index.html">&larr; Back to Marketplace</a></div>
 
     <script>
+        // Firebase Init
+        firebase.initializeApp({
+            apiKey: "AIzaSyBKjmmBhRTMypUzCYdbrzHSOsAxx6EJYKI",
+            authDomain: "chissano-market.firebaseapp.com",
+            projectId: "chissano-market",
+            storageBucket: "chissano-market.firebasestorage.app",
+            messagingSenderId: "91066215347",
+            appId: "1:91066215347:web:60c02df70217910c25b9c6"
+        });
+        var auth = firebase.auth();
+        
         var currentCode = '';
         var codeExpiry = 0;
         var adminEmail = '';
+        var adminPassword = '';
 
         function getEmailSettings() {
             var saved = localStorage.getItem('emailjsSettings');
@@ -97,6 +111,7 @@
             setTimeout(function() {
                 if (user === creds.username && pass === creds.password) {
                     error.classList.remove('show');
+                    adminPassword = pass;
                     var emailSettings = getEmailSettings();
                     adminEmail = (emailSettings && emailSettings.adminEmail) ? emailSettings.adminEmail : 'admin@chissano.co.ke';
                     showStep2();
@@ -146,7 +161,7 @@
 
         function showFallbackCode() {
             var note = document.getElementById('codeNote');
-            note.innerHTML = '<strong>DEV MODE</strong><br>Your code: <span style="font-size:24px;font-weight:700;color:#059669;">' + currentCode + '</span>';
+            note.innerHTML = '<strong>DEV MODE</strong><br>Your code: <span style="font-size:24px;font-weight:700;color:#059669;">' + currentCode + '</span><br><small>Configure EmailJS in Admin Settings</small>';
             note.className = 'code-note dev';
         }
 
@@ -170,12 +185,21 @@
                     success.textContent = 'Login successful! Redirecting...';
                     success.classList.add('show');
                     
-                    var token = btoa('admin:' + Date.now());
-                    localStorage.setItem('adminToken', token);
-                    localStorage.setItem('adminTokenExpiry', (Date.now() + 86400000).toString());
-                    localStorage.setItem('adminUser', 'admin');
-                    
-                    setTimeout(function() { window.location.href = 'admin.html'; }, 800);
+                    // Sign in to Firebase Auth
+                    auth.signInWithEmailAndPassword(adminEmail, adminPassword).then(function() {
+                        finishLogin();
+                    }).catch(function(err) {
+                        // If user doesn't exist, create them
+                        if (err.code === 'auth/user-not-found') {
+                            auth.createUserWithEmailAndPassword(adminEmail, adminPassword).then(function() {
+                                finishLogin();
+                            }).catch(function(e) {
+                                finishLogin(); // Login anyway
+                            });
+                        } else {
+                            finishLogin(); // Login anyway
+                        }
+                    });
                 } else {
                     error.textContent = 'Invalid code. Please try again.';
                     error.classList.add('show');
@@ -183,6 +207,14 @@
                     btn.classList.remove('loading');
                 }
             }, 500);
+        }
+
+        function finishLogin() {
+            var token = btoa('admin:' + Date.now());
+            localStorage.setItem('adminToken', token);
+            localStorage.setItem('adminTokenExpiry', (Date.now() + 86400000).toString());
+            localStorage.setItem('adminUser', 'admin');
+            setTimeout(function() { window.location.href = 'admin.html'; }, 500);
         }
 
         function goBack() {
