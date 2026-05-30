@@ -96,7 +96,7 @@
 <div class="main-content">
     <div class="top-bar"><h2 id="tabTitle">Dashboard</h2><div class="user-info"><div class="avatar" id="userAvatar">A</div><span id="userName">Admin</span></div></div>
     <div id="tab-dashboard" class="section active"><div class="stats-grid"><div class="stat-card"><div class="label">Total Animals</div><div class="value" id="dTotal">-</div></div><div class="stat-card"><div class="label">Available</div><div class="value" id="dAvail">-</div></div><div class="stat-card"><div class="label">Total Orders</div><div class="value" id="dOrders">-</div></div><div class="stat-card"><div class="label">Pending</div><div class="value" id="dPending">-</div></div></div></div>
-    <div id="tab-animals" class="section"><div class="card"><div class="card-header"><h3>All Animals</h3><input type="text" placeholder="Search..." oninput="renderAnimals()" id="animalSearch" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;width:200px;"></div><div class="card-body"><table><thead><tr><th>Image</th><th>Name</th><th>Type</th><th>Breed</th><th>Price</th><th>Stock</th><th>Images</th><th>Status</th><th>Actions</th></tr></thead><tbody id="animalsTable"></tbody></table></div></div></div>
+    <div id="tab-animals" class="section"><div class="card"><div class="card-header"><h3>All Animals</h3><input type="text" placeholder="Search..." oninput="renderAnimals()" id="animalSearch" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;width:200px;"></div><div class="card-body"><tr><thead><tr><th>Image</th><th>Name</th><th>Type</th><th>Breed</th><th>Price</th><th>Stock</th><th>Images</th><th>Status</th><th>Actions</th></tr></thead><tbody id="animalsTable"></tbody></table></div></div></div>
     <div id="tab-orders" class="section"><div class="card"><div class="card-header"><h3>All Orders</h3><select onchange="renderOrders()" id="orderFilter" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;"><option value="all">All</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div><div class="card-body"><table><thead><tr><th>Order ID</th><th>Animal</th><th>Customer</th><th>Phone</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div></div>
     <div id="tab-add" class="section">
         <div class="card">
@@ -371,7 +371,7 @@ function renderAnimals(){
             '<td><span class="badge badge-'+displayStatus+'">'+displayStatus+'</span></td>' +
             '<td><button class="btn btn-edit" onclick="openEdit('+a.id+')">Edit</button> <button class="btn btn-danger" onclick="confirmAction(\'Delete?\',function(){removeAnimal('+a.id+')})">Del</button></td>' +
         '</tr>'; 
-    }).join('')||'<tr><td colspan="9" style="text-align:center;padding:20px;">No animals yet. Add some.</td></table>'; 
+    }).join('')||'<td><td colspan="9" style="text-align:center;padding:20px;">No animals yet. Add some.</td></tr>'; 
 }
 
 function openEdit(id){ 
@@ -430,21 +430,33 @@ function renderOrders(){
             '<td>'+new Date(o.orderDate).toLocaleDateString()+'</td>' +
             '<td>'+(o.status==='pending'?'<button class="btn btn-success" onclick="updateOrder('+o.id+',\'confirmed\')">Confirm</button> <button class="btn btn-danger" onclick="updateOrder('+o.id+',\'cancelled\')">Cancel</button>':'-')+'</td>' +
         '</tr>'; 
-    }).join(''):'<tr><td colspan="8" style="text-align:center;padding:20px;">No orders<tr></tr>'; 
+    }).join(''):'<tr><td colspan="8" style="text-align:center;padding:20px;">No orders</td></tr>'; 
 }
 
 async function updateOrder(id, status){ 
     var o=orders.find(function(x){return x.id===id;}); 
     if(o){ 
+        var previousStatus = o.status;
         o.status=status; 
         await db.collection('orders').doc(String(id)).set(o); 
         var a=animals.find(function(x){return x.id===o.animalId;}); 
         if(a && status === 'confirmed'){ 
+            // When confirming order: decrease stock
             var newStock = (a.stock || 1) - (o.quantity || 1);
             a.stock = newStock;
             a.status = newStock > 0 ? 'available' : 'sold';
             await db.collection('animals').doc(String(a.id)).set(a);
-            toast('Order confirmed! Stock updated to ' + a.stock + ', Status: ' + a.status);
+            toast('Order confirmed! Stock decreased to ' + a.stock);
+        } else if (a && status === 'cancelled' && previousStatus === 'confirmed') {
+            // When cancelling a confirmed order: RESTORE stock
+            var restoredStock = (a.stock || 0) + (o.quantity || 1);
+            a.stock = restoredStock;
+            a.status = restoredStock > 0 ? 'available' : 'sold';
+            await db.collection('animals').doc(String(a.id)).set(a);
+            toast('Order cancelled! Stock restored to ' + a.stock);
+        } else if (a && status === 'cancelled' && previousStatus === 'pending') {
+            // Cancelling pending order (no stock change needed since stock wasn't deducted)
+            toast('Order cancelled. No stock change needed.');
         }
         loadAllData(); 
     } 
