@@ -97,7 +97,7 @@
     <div class="top-bar"><h2 id="tabTitle">Dashboard</h2><div class="user-info"><div class="avatar" id="userAvatar">A</div><span id="userName">Admin</span></div></div>
     <div id="tab-dashboard" class="section active"><div class="stats-grid"><div class="stat-card"><div class="label">Total Animals</div><div class="value" id="dTotal">-</div></div><div class="stat-card"><div class="label">Available</div><div class="value" id="dAvail">-</div></div><div class="stat-card"><div class="label">Total Orders</div><div class="value" id="dOrders">-</div></div><div class="stat-card"><div class="label">Pending</div><div class="value" id="dPending">-</div></div></div></div>
     <div id="tab-animals" class="section"><div class="card"><div class="card-header"><h3>All Animals</h3><input type="text" placeholder="Search..." oninput="renderAnimals()" id="animalSearch" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;width:200px;"></div><div class="card-body"><table><thead><tr><th>Image</th><th>Name</th><th>Type</th><th>Breed</th><th>Price</th><th>Stock</th><th>Images</th><th>Status</th><th>Actions</th></tr></thead><tbody id="animalsTable"></tbody></table></div></div></div>
-    <div id="tab-orders" class="section"><div class="card"><div class="card-header"><h3>All Orders</h3><select onchange="renderOrders()" id="orderFilter" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;"><option value="all">All</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div><div class="card-body"><td><thead><tr><th>Order ID</th><th>Animal</th><th>Customer</th><th>Phone</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div></div>
+    <div id="tab-orders" class="section"><div class="card"><div class="card-header"><h3>All Orders</h3><select onchange="renderOrders()" id="orderFilter" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;"><option value="all">All</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div><div class="card-body"><table><thead><tr><th>Order ID</th><th>Animal</th><th>Customer</th><th>Phone</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div></div>
     <div id="tab-add" class="section">
         <div class="card">
             <div class="card-header"><h3>Add New Animal</h3></div>
@@ -445,13 +445,20 @@ function confirmCancelOrder(orderId) {
 }
 
 function renderOrders(){ 
-    var f=document.getElementById('orderFilter').value; 
-    var fl=f==='all'?orders.slice().reverse():orders.filter(function(o){return o.status===f;}).reverse(); 
+    var f = document.getElementById('orderFilter').value; 
+    var filteredOrders = [];
+    if (f === 'all') {
+        filteredOrders = orders.slice().reverse();
+    } else {
+        filteredOrders = orders.filter(function(o){ return o.status === f; }).reverse();
+    }
+    
     var html = '';
-    for (var i = 0; i < fl.length; i++) {
-        var o = fl[i];
-        var a = animals.find(function(x){return x.id===o.animalId;}); 
+    for (var i = 0; i < filteredOrders.length; i++) {
+        var o = filteredOrders[i];
+        var a = animals.find(function(x){ return x.id === o.animalId; }); 
         var actionButtons = '';
+        
         if (o.status === 'pending') {
             actionButtons = '<button class="btn btn-success" onclick="updateOrder(' + o.id + ', \'confirmed\')">Confirm</button> ' +
                            '<button class="btn btn-danger" onclick="confirmCancelOrder(' + o.id + ')">Cancel</button>';
@@ -460,38 +467,37 @@ function renderOrders(){
         } else {
             actionButtons = '-';
         }
+        
         html += '<tr>';
         html += '<td>#' + o.id + '</td>';
         html += '<td>' + (a ? a.name : '?') + '</td>';
-        html += '<td>' + o.customerName + '</td>';
-        html += '<td>' + o.customerPhone + '</td>';
-        html += '<td>' + o.quantity + '</td>';
+        html += '<td>' + (o.customerName || '') + '</td>';
+        html += '<td>' + (o.customerPhone || '') + '</td>';
+        html += '<td>' + (o.quantity || 1) + '</td>';
         html += '<td><span class="badge badge-' + o.status + '">' + o.status + '</span></td>';
         html += '<td>' + new Date(o.orderDate).toLocaleDateString() + '</td>';
         html += '<td>' + actionButtons + '</td>';
         html += '</tr>';
     }
     
-    if (fl.length === 0) {
-        html = '<tr><td colspan="8" style="text-align:center;padding:20px;">No orders</div>';
+    if (filteredOrders.length === 0) {
+        html = '<tr><td colspan="8" style="text-align:center;padding:20px;">No orders</td></tr>';
     }
     
     document.getElementById('ordersTable').innerHTML = html;
 }
 
 async function updateOrder(id, status){ 
-    var o=orders.find(function(x){return x.id===id;}); 
-    if(o){ 
+    var o = orders.find(function(x){ return x.id === id; }); 
+    if (o) { 
         var previousStatus = o.status;
-        o.status=status; 
+        o.status = status; 
         await db.collection('orders').doc(String(id)).set(o); 
-        var a=animals.find(function(x){return x.id===o.animalId;}); 
+        var a = animals.find(function(x){ return x.id === o.animalId; }); 
         
-        if(a && status === 'confirmed'){ 
-            // When confirming order: stock already decreased at order placement, so no change
+        if (a && status === 'confirmed') { 
             toast('Order confirmed!');
         } else if (a && status === 'cancelled' && (previousStatus === 'pending' || previousStatus === 'confirmed')) {
-            // When cancelling ANY order (pending or confirmed): RESTORE stock
             var restoredStock = (a.stock || 0) + (o.quantity || 1);
             a.stock = restoredStock;
             a.status = restoredStock > 0 ? 'available' : 'sold';
