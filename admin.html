@@ -76,6 +76,7 @@
         .remove-img-btn { position: absolute; top: -5px; right: -5px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
         .img-preview-wrapper { position: relative; display: inline-block; margin-right: 8px; margin-bottom: 8px; }
         .info-text { font-size: 11px; color: #6B7280; margin-top: 5px; }
+        .cancel-order-pending { color: #6B7280; font-style: italic; }
     </style>
 </head>
 <body>
@@ -96,8 +97,8 @@
 <div class="main-content">
     <div class="top-bar"><h2 id="tabTitle">Dashboard</h2><div class="user-info"><div class="avatar" id="userAvatar">A</div><span id="userName">Admin</span></div></div>
     <div id="tab-dashboard" class="section active"><div class="stats-grid"><div class="stat-card"><div class="label">Total Animals</div><div class="value" id="dTotal">-</div></div><div class="stat-card"><div class="label">Available</div><div class="value" id="dAvail">-</div></div><div class="stat-card"><div class="label">Total Orders</div><div class="value" id="dOrders">-</div></div><div class="stat-card"><div class="label">Pending</div><div class="value" id="dPending">-</div></div></div></div>
-    <div id="tab-animals" class="section"><div class="card"><div class="card-header"><h3>All Animals</h3><input type="text" placeholder="Search..." oninput="renderAnimals()" id="animalSearch" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;width:200px;"></div><div class="card-body"><table><thead><tr><th>Image</th><th>Name</th><th>Type</th><th>Breed</th><th>Price</th><th>Stock</th><th>Images</th><th>Status</th><th>Actions</th></tr></thead><tbody id="animalsTable"></tbody></table></div></div></div>
-    <div id="tab-orders" class="section"><div class="card"><div class="card-header"><h3>All Orders</h3><select onchange="renderOrders()" id="orderFilter" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;"><option value="all">All</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div><div class="card-body"><table><thead><tr><th>Order ID</th><th>Animal</th><th>Customer</th><th>Phone</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div></div>
+    <div id="tab-animals" class="section"><div class="card"><div class="card-header"><h3>All Animals</h3><input type="text" placeholder="Search..." oninput="renderAnimals()" id="animalSearch" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;width:200px;"></div><div class="card-body"><td><thead><tr><th>Image</th><th>Name</th><th>Type</th><th>Breed</th><th>Price</th><th>Stock</th><th>Images</th><th>Status</th><th>Actions</th></tr></thead><tbody id="animalsTable"></tbody></table></div></div></div>
+    <div id="tab-orders" class="section"><div class="card"><div class="card-header"><h3>All Orders</h3><select onchange="renderOrders()" id="orderFilter" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;"><option value="all">All</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div><div class="card-body"></td><thead><tr><th>Order ID</th><th>Animal</th><th>Customer</th><th>Phone</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div></div>
     <div id="tab-add" class="section">
         <div class="card">
             <div class="card-header"><h3>Add New Animal</h3></div>
@@ -152,6 +153,9 @@
 
 <script>
 const IMGBB_API_KEY = '921696b7e1de8c32a706f931b5cbc581';
+
+// Variable to store pending cancel order info
+var pendingCancelOrder = null;
 
 function goBackToSite() {
     if (document.referrer && document.referrer.includes('index.html')) {
@@ -381,7 +385,7 @@ function renderAnimals(){
     }
     
     if (filtered.length === 0) {
-        html = '<tr><td colspan="9" style="text-align:center;padding:20px;">No animals yet. Add some.</td></tr>';
+        html = '<tr><td colspan="9" style="text-align:center;padding:20px;">No animals yet. Add some.}}</div>';
     }
     
     document.getElementById('animalsTable').innerHTML = html;
@@ -427,11 +431,38 @@ function saveEdit(e){
 
 function removeAnimal(id){ db.collection('animals').doc(String(id)).delete().then(function(){ loadAllData(); toast('Deleted from cloud'); }).catch(function(err){ showErrorToast(err.message); }); }
 
+// Function to show cancel confirmation modal
+function confirmCancelOrder(orderId) {
+    var order = orders.find(function(x) { return x.id === orderId; });
+    if (!order) return;
+    
+    var message = '';
+    if (order.status === 'confirmed') {
+        message = 'Are you sure you want to CANCEL this confirmed order?\n\nAnimal: ' + (order.animalName || 'Unknown') + '\nQuantity: ' + order.quantity + '\n\nStock will be RESTORED to inventory.';
+    } else {
+        message = 'Are you sure you want to CANCEL this pending order?\n\nAnimal: ' + (order.animalName || 'Unknown') + '\nQuantity: ' + order.quantity + '\n\nNo stock change will occur.';
+    }
+    
+    document.getElementById('confirmMessage').innerHTML = message.replace(/\n/g, '<br>');
+    pendingCancelOrder = orderId;
+    document.getElementById('confirmOverlay').classList.add('show');
+}
+
+// Modified renderOrders with Cancel button for both pending and confirmed
 function renderOrders(){ 
     var f=document.getElementById('orderFilter').value; 
     var fl=f==='all'?orders.slice().reverse():orders.filter(function(o){return o.status===f;}).reverse(); 
     document.getElementById('ordersTable').innerHTML=fl.length?fl.map(function(o){ 
         var a=animals.find(function(x){return x.id===o.animalId;}); 
+        var actionButtons = '';
+        if (o.status === 'pending') {
+            actionButtons = '<button class="btn btn-success" onclick="updateOrder(' + o.id + ', \'confirmed\')">Confirm</button> ' +
+                           '<button class="btn btn-danger" onclick="confirmCancelOrder(' + o.id + ')">Cancel</button>';
+        } else if (o.status === 'confirmed') {
+            actionButtons = '<button class="btn btn-danger" onclick="confirmCancelOrder(' + o.id + ')">Cancel</button>';
+        } else {
+            actionButtons = '-';
+        }
         return '<tr>' +
             '<td>#'+o.id+'</td>' +
             '<td>'+(a?a.name:'?')+'</td>' +
@@ -440,7 +471,7 @@ function renderOrders(){
             '<td>'+o.quantity+'</td>' +
             '<td><span class="badge badge-'+o.status+'">'+o.status+'</span></td>' +
             '<td>'+new Date(o.orderDate).toLocaleDateString()+'</td>' +
-            '<td>'+(o.status==='pending'?'<button class="btn btn-success" onclick="updateOrder('+o.id+',\'confirmed\')">Confirm</button> <button class="btn btn-danger" onclick="updateOrder('+o.id+',\'cancelled\')">Cancel</button>':'-')+'</td>' +
+            '<td>'+actionButtons+'</div>' +
         '</tr>'; 
     }).join(''):'<tr><td colspan="8" style="text-align:center;padding:20px;">No orders</td></tr>'; 
 }
@@ -469,6 +500,20 @@ async function updateOrder(id, status){
         }
         loadAllData(); 
     } 
+    pendingCancelOrder = null;
+}
+
+// Override executeConfirm to handle cancel order
+var originalExecuteConfirm = executeConfirm;
+function executeConfirm() {
+    document.getElementById('confirmOverlay').classList.remove('show');
+    if (pendingCancelOrder !== null) {
+        updateOrder(pendingCancelOrder, 'cancelled');
+        pendingCancelOrder = null;
+    } else if (confirmCb) {
+        confirmCb();
+        confirmCb = null;
+    }
 }
 
 function loadSettings(){ document.getElementById('sName').value=settings.businessName||''; document.getElementById('sCurrency').value=settings.currency||'KSh'; document.getElementById('sPhone').value=settings.contactPhone||''; document.getElementById('sEmail').value=settings.contactEmail||''; document.getElementById('sLocation').value=settings.businessLocation||''; document.getElementById('sHours').value=settings.businessHours||''; if(adminCreds) document.getElementById('pCurrent').value=adminCreds.password; }
@@ -481,7 +526,9 @@ function changePassword(e){ e.preventDefault(); if(!adminCreds) return toast('Lo
 function resetAllDefaults(){ var defCreds={username:'admin',password:'admin123'}; var defEmailJS={publicKey:'',serviceId:'',templateId:'',adminEmail:'admin@chissano.co.ke'}; Promise.all([ db.collection('settings').doc('credentials').set(defCreds), db.collection('settings').doc('emailjs').set(defEmailJS) ]).then(function(){ adminCreds=defCreds; emailjsSettings=defEmailJS; localStorage.setItem('adminCredentials',JSON.stringify(adminCreds)); localStorage.setItem('emailjsSettings',JSON.stringify(emailjsSettings)); showAlert('Reset complete! Use admin/admin123'); setTimeout(function(){logout();}, 1500); }).catch(function(err){ showErrorToast('Reset error: '+err.message); }); }
 function logout(){ localStorage.removeItem('adminToken'); localStorage.removeItem('adminTokenExpiry'); window.location.href='login.html'; }
 function switchTab(tab){ document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');}); document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');}); document.getElementById('tab-'+tab).classList.add('active'); event.target.classList.add('active'); var titles={dashboard:'Dashboard',animals:'Animals',orders:'Orders',add:'Add Animal',settings:'Settings'}; document.getElementById('tabTitle').textContent=titles[tab]; if(tab==='dashboard') updateDashboard(); if(tab==='animals') renderAnimals(); if(tab==='orders') renderOrders(); if(tab==='settings'){ loadSettings(); loadEmailJSForm(); } }
-var confirmCb=null; function confirmAction(msg,cb){ document.getElementById('confirmMessage').textContent=msg; confirmCb=cb; document.getElementById('confirmOverlay').classList.add('show'); } function closeConfirm(){ document.getElementById('confirmOverlay').classList.remove('show'); confirmCb=null; } function executeConfirm(){ document.getElementById('confirmOverlay').classList.remove('show'); if(confirmCb){ confirmCb(); confirmCb=null; } } function showAlert(msg){ document.getElementById('alertMessage').textContent=msg; document.getElementById('alertOverlay').classList.add('show'); } function closeAlert(){ document.getElementById('alertOverlay').classList.remove('show'); }
+var confirmCb=null; function confirmAction(msg,cb){ document.getElementById('confirmMessage').textContent=msg; confirmCb=cb; document.getElementById('confirmOverlay').classList.add('show'); } function closeConfirm(){ document.getElementById('confirmOverlay').classList.remove('show'); confirmCb=null; pendingCancelOrder = null; }
+function showAlert(msg){ document.getElementById('alertMessage').textContent=msg; document.getElementById('alertOverlay').classList.add('show'); }
+function closeAlert(){ document.getElementById('alertOverlay').classList.remove('show'); }
 document.addEventListener('click',function(e){ if(e.target.id==='editModal') closeEditModal(); if(e.target.id==='confirmOverlay') closeConfirm(); if(e.target.id==='alertOverlay') closeAlert(); });
 if(!localStorage.getItem('adminToken')||Date.now()>parseInt(localStorage.getItem('adminTokenExpiry')||0)) window.location.href='login.html';
 var userName=localStorage.getItem('adminUser')||'Admin';
