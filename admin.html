@@ -96,7 +96,7 @@
 <div class="main-content">
     <div class="top-bar"><h2 id="tabTitle">Dashboard</h2><div class="user-info"><div class="avatar" id="userAvatar">A</div><span id="userName">Admin</span></div></div>
     <div id="tab-dashboard" class="section active"><div class="stats-grid"><div class="stat-card"><div class="label">Total Animals</div><div class="value" id="dTotal">-</div></div><div class="stat-card"><div class="label">Available</div><div class="value" id="dAvail">-</div></div><div class="stat-card"><div class="label">Total Orders</div><div class="value" id="dOrders">-</div></div><div class="stat-card"><div class="label">Pending</div><div class="value" id="dPending">-</div></div></div></div>
-    <div id="tab-animals" class="section"><div class="card"><div class="card-header"><h3>All Animals</h3><input type="text" placeholder="Search..." oninput="renderAnimals()" id="animalSearch" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;width:200px;"></div><div class="card-body"><tr><thead><tr><th>Image</th><th>Name</th><th>Type</th><th>Breed</th><th>Price</th><th>Stock</th><th>Images</th><th>Status</th><th>Actions</th></tr></thead><tbody id="animalsTable"></tbody></table></div></div></div>
+    <div id="tab-animals" class="section"><div class="card"><div class="card-header"><h3>All Animals</h3><input type="text" placeholder="Search..." oninput="renderAnimals()" id="animalSearch" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;width:200px;"></div><div class="card-body"><table><thead><tr><th>Image</th><th>Name</th><th>Type</th><th>Breed</th><th>Price</th><th>Stock</th><th>Images</th><th>Status</th><th>Actions</th></tr></thead><tbody id="animalsTable"></tbody></table></div></div></div>
     <div id="tab-orders" class="section"><div class="card"><div class="card-header"><h3>All Orders</h3><select onchange="renderOrders()" id="orderFilter" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;"><option value="all">All</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div><div class="card-body"><table><thead><tr><th>Order ID</th><th>Animal</th><th>Customer</th><th>Phone</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div></div>
     <div id="tab-add" class="section">
         <div class="card">
@@ -354,24 +354,37 @@ function getStockBadge(stock) {
 }
 
 function renderAnimals(){ 
-    var q=(document.getElementById('animalSearch')?document.getElementById('animalSearch').value:'').toLowerCase(); 
-    var f=q?animals.filter(function(a){return a.name.toLowerCase().includes(q)||a.type.toLowerCase().includes(q);}):animals; 
-    document.getElementById('animalsTable').innerHTML=f.map(function(a){ 
-        var img=(a.images&&a.images[0])?a.images[0]:'https://via.placeholder.com/50';
+    var searchTerm = document.getElementById('animalSearch') ? document.getElementById('animalSearch').value : '';
+    var query = searchTerm.toLowerCase();
+    var filtered = query ? animals.filter(function(a){
+        return a.name.toLowerCase().includes(query) || a.type.toLowerCase().includes(query);
+    }) : animals;
+    
+    var html = '';
+    for (var i = 0; i < filtered.length; i++) {
+        var a = filtered[i];
+        var img = (a.images && a.images[0]) ? a.images[0] : 'https://via.placeholder.com/50';
         var stock = a.stock || 0;
         var displayStatus = (stock === 0 && a.status === 'available') ? 'sold' : a.status;
-        return '<tr>' +
-            '<td style="padding:8px;"><img src="'+img+'" style="width:50px;height:40px;object-fit:cover;border-radius:6px;"></td>' +
-            '<td><strong>'+a.name+'</strong></td>' +
-            '<td>'+a.type+'</td>' +
-            '<td>'+a.breed+'</td>' +
-            '<td>KSh '+a.price.toLocaleString()+'</td>' +
-            '<td>' + stock + ' ' + getStockBadge(stock) + '</td>' +
-            '<td>'+(a.images?a.images.length:0)+' photos</td>' +
-            '<td><span class="badge badge-'+displayStatus+'">'+displayStatus+'</span></td>' +
-            '<td><button class="btn btn-edit" onclick="openEdit('+a.id+')">Edit</button> <button class="btn btn-danger" onclick="confirmAction(\'Delete?\',function(){removeAnimal('+a.id+')})">Del</button></td>' +
-        '</tr>'; 
-    }).join('')||'<td><td colspan="9" style="text-align:center;padding:20px;">No animals yet. Add some.</td></tr>'; 
+        
+        html += '<tr>';
+        html += '<td style="padding:8px;"><img src="' + img + '" style="width:50px;height:40px;object-fit:cover;border-radius:6px;"></td>';
+        html += '<td><strong>' + a.name + '</strong></td>';
+        html += '<td>' + a.type + '</td>';
+        html += '<td>' + (a.breed || '') + '</td>';
+        html += '<td>KSh ' + (a.price || 0).toLocaleString() + '</td>';
+        html += '<td>' + stock + ' ' + getStockBadge(stock) + '</td>';
+        html += '<td>' + (a.images ? a.images.length : 0) + ' photos</td>';
+        html += '<td><span class="badge badge-' + displayStatus + '">' + displayStatus + '</span></td>';
+        html += '<td><button class="btn btn-edit" onclick="openEdit(' + a.id + ')">Edit</button> <button class="btn btn-danger" onclick="confirmAction(\'Delete?\',function(){removeAnimal(' + a.id + ')})">Del</button></td>';
+        html += '</tr>';
+    }
+    
+    if (filtered.length === 0) {
+        html = '<tr><td colspan="9" style="text-align:center;padding:20px;">No animals yet. Add some.</td></tr>';
+    }
+    
+    document.getElementById('animalsTable').innerHTML = html;
 }
 
 function openEdit(id){ 
@@ -405,7 +418,6 @@ function saveEdit(e){
         a.price=parseInt(document.getElementById('editPrice').value); 
         a.stock=parseInt(document.getElementById('editStock').value); 
         a.location=document.getElementById('editLocation').value; 
-        // Auto-set status based on stock
         a.status = a.stock > 0 ? 'available' : 'sold';
         db.collection('animals').doc(String(id)).set(a).then(function(){ 
             closeEditModal(); loadAllData(); showAlert('Animal updated! Status auto-set to ' + a.status); 
@@ -441,21 +453,18 @@ async function updateOrder(id, status){
         await db.collection('orders').doc(String(id)).set(o); 
         var a=animals.find(function(x){return x.id===o.animalId;}); 
         if(a && status === 'confirmed'){ 
-            // When confirming order: decrease stock
             var newStock = (a.stock || 1) - (o.quantity || 1);
             a.stock = newStock;
             a.status = newStock > 0 ? 'available' : 'sold';
             await db.collection('animals').doc(String(a.id)).set(a);
             toast('Order confirmed! Stock decreased to ' + a.stock);
         } else if (a && status === 'cancelled' && previousStatus === 'confirmed') {
-            // When cancelling a confirmed order: RESTORE stock
             var restoredStock = (a.stock || 0) + (o.quantity || 1);
             a.stock = restoredStock;
             a.status = restoredStock > 0 ? 'available' : 'sold';
             await db.collection('animals').doc(String(a.id)).set(a);
             toast('Order cancelled! Stock restored to ' + a.stock);
         } else if (a && status === 'cancelled' && previousStatus === 'pending') {
-            // Cancelling pending order (no stock change needed since stock wasn't deducted)
             toast('Order cancelled. No stock change needed.');
         }
         loadAllData(); 
