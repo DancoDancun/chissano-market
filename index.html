@@ -66,8 +66,22 @@
         .terms-box { background: white; padding: 25px; border-radius: 12px; max-height: 400px; overflow-y: auto; font-size: 13px; }
         .terms-box h3 { color: #059669; margin: 16px 0 8px; }
         .terms-box p { color: #4B5563; line-height: 1.7; font-size: 13px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.show { display: flex; } .modal-box { background: white; border-radius: 16px; padding: 25px; max-width: 460px; width: 90%; }
+        /* Order Modal */
+        .order-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .order-modal.show { display: flex; }
+        .order-modal-box { background: white; border-radius: 16px; padding: 25px; max-width: 460px; width: 90%; }
+        /* Custom Alert Modal */
+        .custom-alert { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+        .custom-alert.show { display: flex; }
+        .alert-box { background: white; border-radius: 16px; padding: 30px; max-width: 420px; width: 90%; text-align: center; }
+        .alert-box h3 { font-size: 22px; margin-bottom: 15px; }
+        .alert-box p { color: #4B5563; line-height: 1.6; margin-bottom: 25px; font-size: 14px; }
+        .alert-box button { padding: 12px 30px; background: #059669; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; }
+        .alert-box button:hover { background: #047857; }
+        .alert-icon { font-size: 50px; margin-bottom: 15px; }
+        .alert-icon.success { color: #059669; }
+        .alert-icon.error { color: #EF4444; }
+        .alert-icon.warning { color: #F59E0B; }
         .form-group { margin-bottom: 12px; } .form-group label { display: block; font-weight: 600; font-size: 12px; margin-bottom: 4px; }
         .form-group input { width: 100%; padding: 9px 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; }
         .btn-submit { width: 100%; padding: 12px; background: #059669; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
@@ -98,7 +112,13 @@
 <main class="animals-section" id="animals"><div class="container"><h2>Available Animals</h2><div class="avail-tags" id="availTags"></div><div class="animals-grid" id="animalsGrid"><div class="loading-spinner">Loading animals...</div></div></div></main>
 <section class="about-section" id="about"><div class="container"><h2>About Chissano AnimalMarket</h2><div class="about-content"><div class="about-text"><p><strong>Chissano AnimalMarket</strong> is a trusted provider of quality domestic animals in Kenya. We connect farmers and families with healthy, well-bred animals.</p><p>Our animals are vaccinated, dewormed, and ready for their new homes. All photos are real images of available animals taken from our farm.</p><p><strong>Physical Address:</strong> Chissano Farm, Nandi County, along Kapsabet-Eldoret Road, Kenya.</p></div><div class="about-features"><div class="about-feature">Quality Guaranteed</div><div class="about-feature">Nationwide Delivery</div><div class="about-feature">Vaccinated Animals</div><div class="about-feature">Trusted Since 2020</div></div></div></div></section>
 <section class="terms-section" id="terms"><div class="container"><h2>Terms & Conditions</h2><div class="terms-box"><h3>1. Ordering</h3><p>Orders processed first-come, first-served. Confirmation via WhatsApp within 24 hours.</p><h3>2. Pricing</h3><p>All prices in KSh. Payment via M-Pesa, Bank Transfer, or Cash on Delivery.</p><h3>3. Delivery</h3><p>Nationwide delivery available. Fees vary by location. 24-72 hours delivery.</p><h3>4. Health Guarantee</h3><p>All animals vaccinated and dewormed. 48-hour health guarantee after delivery.</p><h3>5. Returns</h3><p>Returns accepted within 48 hours if health issues. Refund within 7 working days.</p><h3>6. Contact</h3><p>Phone: +254 724934269 | Chissano Farm, Nandi County, Kenya</p></div></div></section>
-<div class="modal" id="orderModal"><div class="modal-box"><button onclick="closeModal()" style="float:right;background:none;border:none;font-size:22px;cursor:pointer;">×</button><h2>Place Order</h2><form onsubmit="return submitOrder(event)"><input type="hidden" id="orderAnimalId"><div class="form-group"><label>Your Name *</label><input type="text" id="custName" required></div><div class="form-group"><label>Phone Number *</label><input type="tel" id="custPhone" required></div><div class="form-group"><label>Quantity</label><input type="number" id="orderQty" min="1" value="1"></div><button type="submit" class="btn-submit">Confirm Order</button></form></div></div>
+
+<!-- Order Modal -->
+<div class="order-modal" id="orderModal"><div class="order-modal-box"><button onclick="closeModal()" style="float:right;background:none;border:none;font-size:22px;cursor:pointer;">×</button><h2>Place Order</h2><form onsubmit="return submitOrder(event)"><input type="hidden" id="orderAnimalId"><div class="form-group"><label>Your Name *</label><input type="text" id="custName" required></div><div class="form-group"><label>Phone Number *</label><input type="tel" id="custPhone" required></div><div class="form-group"><label>Quantity</label><input type="number" id="orderQty" min="1" value="1"></div><button type="submit" class="btn-submit">Confirm Order</button></form></div></div>
+
+<!-- Custom Alert Modal -->
+<div class="custom-alert" id="customAlert"><div class="alert-box"><div class="alert-icon" id="alertIcon"></div><h3 id="alertTitle">Success</h3><p id="alertMessage"></p><button onclick="closeAlert()">OK</button></div></div>
+
 <section class="orders-section" id="orders"><div class="container"><h2>My Orders</h2><div class="phone-verify-box" id="phoneVerifyBox"><input type="tel" id="viewPhoneInput" placeholder="Enter your phone number to see your orders" value=""><button onclick="setViewPhone()">View My Orders</button><span id="activePhoneDisplay"></span></div><div id="ordersList"><p style="text-align:center;padding:30px;">Enter your phone number above to see your orders.</p></div></div></section>
 <section class="contact-section" id="contact"><div class="container"><h2>Get In Touch</h2><div class="contact-grid" id="contactGrid"></div></div></section>
 <footer class="site-footer"><div class="container"><p>© 2024 Chissano AnimalMarket | Nandi County, Kenya</p></div></footer>
@@ -134,6 +154,40 @@ var typeNames = {
     dogs: 'Dogs',
     cats: 'Cats'
 };
+
+// Custom Alert Function
+function showCustomAlert(title, message, type) {
+    var alertDiv = document.getElementById('customAlert');
+    var iconDiv = document.getElementById('alertIcon');
+    var titleEl = document.getElementById('alertTitle');
+    var msgEl = document.getElementById('alertMessage');
+    
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    
+    if (type === 'success') {
+        iconDiv.innerHTML = '✓';
+        iconDiv.className = 'alert-icon success';
+        iconDiv.style.fontSize = '50px';
+        iconDiv.style.fontWeight = 'bold';
+    } else if (type === 'error') {
+        iconDiv.innerHTML = '✗';
+        iconDiv.className = 'alert-icon error';
+        iconDiv.style.fontSize = '50px';
+        iconDiv.style.fontWeight = 'bold';
+    } else {
+        iconDiv.innerHTML = '!';
+        iconDiv.className = 'alert-icon warning';
+        iconDiv.style.fontSize = '50px';
+        iconDiv.style.fontWeight = 'bold';
+    }
+    
+    alertDiv.classList.add('show');
+}
+
+function closeAlert() {
+    document.getElementById('customAlert').classList.remove('show');
+}
 
 function toggleMenu() {
     document.getElementById('navMenu').classList.toggle('show');
@@ -225,7 +279,6 @@ function updateActivePhoneDisplay() {
 function updateAvailTags() {
     var html = '';
     types.forEach(function(type) {
-        // Count animals that are TRULY available (status available AND stock > 0)
         var count = animals.filter(function(a) {
             return a.type === type && a.status === 'available' && (a.stock || 1) > 0;
         }).length;
@@ -284,10 +337,8 @@ function displayGroupedAnimals() {
 function buildAnimalCards(animalArray) {
     return animalArray.map(function(animal) {
         var stock = animal.stock || 0;
-        // TRULY available: status is 'available' AND stock > 0
         var isAvailable = animal.status === 'available' && stock > 0;
         
-        // Stock color class
         var stockColorClass = '';
         if (stock === 0) stockColorClass = 'stock-out';
         else if (stock <= 3) stockColorClass = 'stock-low';
@@ -300,7 +351,6 @@ function buildAnimalCards(animalArray) {
         var breed = animal.breed || '';
         var age = animal.age || '';
         
-        // Determine button text and status display
         var buttonText = 'Sold Out';
         var buttonDisabled = true;
         var displayStatus = animal.status;
@@ -368,9 +418,8 @@ function searchAnimals() {
 function openOrderModal(animalId) {
     var animal = animals.find(function(a) { return a.id === animalId; });
     if (!animal) return;
-    // Check both status AND stock
     if (animal.status !== 'available' || (animal.stock || 1) <= 0) {
-        alert('Sorry, this animal is no longer available.');
+        showCustomAlert('Not Available', 'Sorry, this animal is no longer available.', 'error');
         return;
     }
     document.getElementById('orderAnimalId').value = animalId;
@@ -391,18 +440,18 @@ async function submitOrder(e) {
     var quantity = parseInt(document.getElementById('orderQty').value) || 1;
     
     if (!animal) {
-        alert('Animal not found');
+        showCustomAlert('Error', 'Animal not found', 'error');
         return false;
     }
     
     if (animal.status !== 'available' || (animal.stock || 1) <= 0) {
-        alert('Sorry, this animal is no longer available.');
+        showCustomAlert('Not Available', 'Sorry, this animal is no longer available.', 'error');
         closeModal();
         return false;
     }
     
     if (quantity > (animal.stock || 1)) {
-        alert('Sorry, only ' + (animal.stock || 1) + ' of this animal available.');
+        showCustomAlert('Insufficient Stock', 'Sorry, only ' + (animal.stock || 1) + ' of this animal available.', 'warning');
         return false;
     }
     
@@ -419,7 +468,7 @@ async function submitOrder(e) {
     };
     
     if (!orderData.customerName || !orderData.customerPhone) {
-        alert('Please fill in your name and phone number.');
+        showCustomAlert('Missing Info', 'Please fill in your name and phone number.', 'warning');
         return false;
     }
     
@@ -446,11 +495,11 @@ async function submitOrder(e) {
         });
         
         closeModal();
-        alert('Order placed successfully! You will receive confirmation via WhatsApp.\n\nYou can now enter your phone number in "My Orders" section to track your order.');
+        showCustomAlert('Order Successful!', 'Order placed successfully! You will receive confirmation via WhatsApp.\n\nYou can now enter your phone number in "My Orders" section to track your order.', 'success');
         
     } catch (err) {
         console.error("Transaction error:", err);
-        alert('Sorry, this animal is no longer available or stock has changed. Please try again.');
+        showCustomAlert('Order Failed', 'Sorry, this animal is no longer available or stock has changed. Please try again.', 'error');
     }
     
     return false;
@@ -500,7 +549,7 @@ document.addEventListener('click', function(e) {
     if (e.target.id === 'orderModal') closeModal();
 });
 
-console.log('Chissano AnimalMarket loaded - Stock management enabled');
+console.log('Chissano AnimalMarket loaded - Custom modals enabled');
 </script>
 </body>
 </html>
