@@ -68,7 +68,13 @@
         .form-group { margin-bottom: 12px; } .form-group label { display: block; font-weight: 600; font-size: 12px; margin-bottom: 4px; }
         .form-group input { width: 100%; padding: 9px 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; }
         .btn-submit { width: 100%; padding: 12px; background: #059669; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
-        .orders-section { padding: 40px 0; background: white; } .order-card { background: #F9FAFB; padding: 14px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #059669; }
+        .orders-section { padding: 40px 0; background: white; } 
+        .order-card { background: #F9FAFB; padding: 14px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #059669; }
+        .phone-verify-box { background: #F0FDF4; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .phone-verify-box input { flex: 1; padding: 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 14px; }
+        .phone-verify-box button { padding: 12px 24px; background: #059669; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .active-phone-badge { background: #059669; color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; display: inline-block; margin-left: 10px; }
+        .clear-phone-btn { background: #6B7280; color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 11px; margin-left: 8px; }
         .contact-section { padding: 50px 0; background: #1F2937; color: white; text-align: center; }
         .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 850px; margin: 25px auto 0; }
         .contact-item { padding: 18px; background: rgba(255,255,255,0.05); border-radius: 12px; }
@@ -90,7 +96,7 @@
 <section class="about-section" id="about"><div class="container"><h2>About Chissano AnimalMarket</h2><div class="about-content"><div class="about-text"><p><strong>Chissano AnimalMarket</strong> is a trusted provider of quality domestic animals in Kenya. We connect farmers and families with healthy, well-bred animals.</p><p>Our animals are vaccinated, dewormed, and ready for their new homes. All photos are real images of available animals taken from our farm.</p><p><strong>Physical Address:</strong> Chissano Farm, Nandi County, along Kapsabet-Eldoret Road, Kenya.</p></div><div class="about-features"><div class="about-feature">Quality Guaranteed</div><div class="about-feature">Nationwide Delivery</div><div class="about-feature">Vaccinated Animals</div><div class="about-feature">Trusted Since 2020</div></div></div></div></section>
 <section class="terms-section" id="terms"><div class="container"><h2>Terms & Conditions</h2><div class="terms-box"><h3>1. Ordering</h3><p>Orders processed first-come, first-served. Confirmation via WhatsApp within 24 hours.</p><h3>2. Pricing</h3><p>All prices in KSh. Payment via M-Pesa, Bank Transfer, or Cash on Delivery.</p><h3>3. Delivery</h3><p>Nationwide delivery available. Fees vary by location. 24-72 hours delivery.</p><h3>4. Health Guarantee</h3><p>All animals vaccinated and dewormed. 48-hour health guarantee after delivery.</p><h3>5. Returns</h3><p>Returns accepted within 48 hours if health issues. Refund within 7 working days.</p><h3>6. Contact</h3><p>Phone: +254 724934269 | Chissano Farm, Nandi County, Kenya</p></div></div></section>
 <div class="modal" id="orderModal"><div class="modal-box"><button onclick="closeModal()" style="float:right;background:none;border:none;font-size:22px;cursor:pointer;">×</button><h2>Place Order</h2><form onsubmit="return submitOrder(event)"><input type="hidden" id="orderAnimalId"><div class="form-group"><label>Your Name *</label><input type="text" id="custName" required></div><div class="form-group"><label>Phone Number *</label><input type="tel" id="custPhone" required></div><div class="form-group"><label>Quantity</label><input type="number" id="orderQty" min="1" value="1"></div><button type="submit" class="btn-submit">Confirm Order</button></form></div></div>
-<section class="orders-section" id="orders"><div class="container"><h2>My Orders</h2><div id="ordersList"><p style="text-align:center;padding:30px;">No orders yet. Place an order above.</p></div></div></section>
+<section class="orders-section" id="orders"><div class="container"><h2>My Orders</h2><div class="phone-verify-box" id="phoneVerifyBox"><input type="tel" id="viewPhoneInput" placeholder="Enter your phone number to see your orders" value=""><button onclick="setViewPhone()">View My Orders</button><span id="activePhoneDisplay"></span></div><div id="ordersList"><p style="text-align:center;padding:30px;">Enter your phone number above to see your orders.</p></div></div></section>
 <section class="contact-section" id="contact"><div class="container"><h2>Get In Touch</h2><div class="contact-grid" id="contactGrid"></div></div></section>
 <footer class="site-footer"><div class="container"><p>© 2024 Chissano AnimalMarket | Nandi County, Kenya</p></div></footer>
 <a href="https://wa.me/254724934269" class="whatsapp-float" target="_blank">📱</a>
@@ -109,10 +115,11 @@ firebase.initializeApp({
 
 var db = firebase.firestore();
 var animals = [];
-var orders = [];
+var allOrders = [];
 var settings = {};
 var currentFilter = 'all';
 var searchQuery = '';
+var currentViewPhone = localStorage.getItem('viewPhone') || '';
 
 var types = ['cattle', 'goats', 'sheep', 'poultry', 'pigs', 'dogs', 'cats'];
 var typeNames = {
@@ -154,11 +161,11 @@ db.collection('animals').onSnapshot(function(snapshot) {
     document.getElementById('animalsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#DC2626;">Error loading animals. Please refresh the page.</div>';
 });
 
-// Real-time listener for orders
+// Real-time listener for all orders (used for admin, but filtered for customers)
 db.collection('orders').onSnapshot(function(snapshot) {
-    orders = [];
+    allOrders = [];
     snapshot.forEach(function(doc) {
-        orders.push(doc.data());
+        allOrders.push(doc.data());
     });
     displayOrders();
 });
@@ -170,6 +177,47 @@ db.collection('settings').doc('main').onSnapshot(function(doc) {
         loadContactInfo();
     }
 });
+
+// Load saved phone number on page load
+window.addEventListener('DOMContentLoaded', function() {
+    if (currentViewPhone) {
+        document.getElementById('viewPhoneInput').value = currentViewPhone;
+        updateActivePhoneDisplay();
+        displayOrders();
+    }
+});
+
+function setViewPhone() {
+    var phone = document.getElementById('viewPhoneInput').value.trim();
+    if (phone) {
+        currentViewPhone = phone;
+        localStorage.setItem('viewPhone', phone);
+        updateActivePhoneDisplay();
+        displayOrders();
+    } else {
+        currentViewPhone = '';
+        localStorage.removeItem('viewPhone');
+        updateActivePhoneDisplay();
+        displayOrders();
+    }
+}
+
+function clearViewPhone() {
+    currentViewPhone = '';
+    localStorage.removeItem('viewPhone');
+    document.getElementById('viewPhoneInput').value = '';
+    updateActivePhoneDisplay();
+    displayOrders();
+}
+
+function updateActivePhoneDisplay() {
+    var displaySpan = document.getElementById('activePhoneDisplay');
+    if (currentViewPhone) {
+        displaySpan.innerHTML = '<span class="active-phone-badge">Viewing orders for: ' + escapeHtml(currentViewPhone) + ' <button class="clear-phone-btn" onclick="clearViewPhone()">Clear</button></span>';
+    } else {
+        displaySpan.innerHTML = '';
+    }
+}
 
 function updateAvailTags() {
     var html = '';
@@ -307,10 +355,11 @@ function closeModal() {
     document.getElementById('orderModal').classList.remove('show');
 }
 
-function submitOrder(e) {
+async function submitOrder(e) {
     e.preventDefault();
     var animalId = parseInt(document.getElementById('orderAnimalId').value);
     var animal = animals.find(function(a) { return a.id === animalId; });
+    var quantity = parseInt(document.getElementById('orderQty').value) || 1;
     
     if (!animal) {
         alert('Animal not found');
@@ -323,6 +372,11 @@ function submitOrder(e) {
         return false;
     }
     
+    if (quantity > (animal.stock || 1)) {
+        alert('Sorry, only ' + (animal.stock || 1) + ' of this animal available.');
+        return false;
+    }
+    
     var orderData = {
         id: Date.now(),
         animalId: animal.id,
@@ -330,7 +384,7 @@ function submitOrder(e) {
         animalType: animal.type,
         customerName: document.getElementById('custName').value.trim(),
         customerPhone: document.getElementById('custPhone').value.trim(),
-        quantity: parseInt(document.getElementById('orderQty').value) || 1,
+        quantity: quantity,
         orderDate: new Date().toISOString(),
         status: 'pending'
     };
@@ -340,33 +394,78 @@ function submitOrder(e) {
         return false;
     }
     
-    db.collection('orders').doc(String(orderData.id)).set(orderData)
-        .then(function() {
-            closeModal();
-            alert('Order placed successfully! You will receive confirmation via WhatsApp.');
-        })
-        .catch(function(error) {
-            console.error("Order error:", error);
-            alert('Error placing order. Please try again.');
+    // Calculate new stock
+    var newStock = (animal.stock || 1) - quantity;
+    var newStatus = newStock === 0 ? 'sold' : 'available';
+    
+    try {
+        // Use Firestore transaction to ensure stock doesn't go negative
+        var animalRef = db.collection('animals').doc(String(animal.id));
+        
+        await db.runTransaction(async function(transaction) {
+            var animalDoc = await transaction.get(animalRef);
+            if (!animalDoc.exists) {
+                throw new Error('Animal no longer exists');
+            }
+            var currentStock = animalDoc.data().stock || 1;
+            if (currentStock < quantity) {
+                throw new Error('Not enough stock available');
+            }
+            
+            // Update animal stock
+            transaction.update(animalRef, {
+                stock: currentStock - quantity,
+                status: (currentStock - quantity) === 0 ? 'sold' : 'available'
+            });
+            
+            // Add order
+            transaction.set(db.collection('orders').doc(String(orderData.id)), orderData);
         });
+        
+        closeModal();
+        alert('Order placed successfully! You will receive confirmation via WhatsApp.\n\nYou can now enter your phone number in "My Orders" section to track your order.');
+        
+    } catch (err) {
+        console.error("Transaction error:", err);
+        alert('Sorry, this animal is no longer available or stock has changed. Please try again.');
+    }
     
     return false;
 }
 
 function displayOrders() {
     var container = document.getElementById('ordersList');
-    if (!orders.length) {
-        container.innerHTML = '<p style="text-align:center;padding:30px;">No orders yet. Place an order above.</p>';
+    
+    if (!currentViewPhone) {
+        container.innerHTML = '<p style="text-align:center;padding:30px;">Enter your phone number above to see your orders.</p>';
         return;
     }
     
-    var reversed = orders.slice().reverse();
+    // Filter orders by phone number (only show orders for this customer)
+    var myOrders = allOrders.filter(function(order) {
+        var orderPhone = (order.customerPhone || '').replace(/\s/g, '');
+        var viewPhone = currentViewPhone.replace(/\s/g, '');
+        return orderPhone === viewPhone;
+    });
+    
+    if (myOrders.length === 0) {
+        container.innerHTML = '<p style="text-align:center;padding:30px;">No orders found for phone number: ' + escapeHtml(currentViewPhone) + '</p>';
+        return;
+    }
+    
+    var reversed = myOrders.slice().reverse();
     container.innerHTML = reversed.map(function(order) {
+        var statusClass = '';
+        if (order.status === 'confirmed') statusClass = 'status-confirmed';
+        else if (order.status === 'cancelled') statusClass = 'status-cancelled';
+        else statusClass = 'status-' + order.status;
+        
         return '<div class="order-card">' +
             '<strong>' + escapeHtml(order.animalName || 'Animal') + '</strong>' +
-            '<p style="font-size:12px;">Customer: ' + escapeHtml(order.customerName) + ' | ' + escapeHtml(order.customerPhone) + '</p>' +
+            '<p style="font-size:12px;">Order ID: #' + order.id + '</p>' +
+            '<p style="font-size:12px;">Customer: ' + escapeHtml(order.customerName) + '</p>' +
             '<p style="font-size:12px;">Quantity: ' + (order.quantity || 1) + ' | Date: ' + new Date(order.orderDate).toLocaleDateString() + '</p>' +
-            '<span class="status-badge status-' + order.status + '">' + order.status + '</span>' +
+            '<span class="status-badge ' + statusClass + '">' + order.status.toUpperCase() + '</span>' +
             '</div>';
     }).join('');
 }
@@ -385,7 +484,7 @@ document.addEventListener('click', function(e) {
     if (e.target.id === 'orderModal') closeModal();
 });
 
-console.log('Chissano AnimalMarket loaded - Images from Firebase Storage');
+console.log('Chissano AnimalMarket loaded - Stock management and private orders enabled');
 </script>
 </body>
 </html>
