@@ -44,7 +44,10 @@
         .animal-name { font-size: 16px; font-weight: 700; margin: 8px 0 4px; } 
         .animal-price { font-size: 20px; font-weight: 700; color: #059669; margin: 6px 0; }
         .animal-location { font-size: 11px; color: #6B7280; display: flex; align-items: center; gap: 4px; margin: 4px 0; }
-        .animal-stock { font-size: 11px; color: #6B7280; margin: 4px 0; }
+        .animal-stock { font-size: 11px; font-weight: 500; margin: 4px 0; }
+        .stock-available { color: #059669; }
+        .stock-low { color: #F59E0B; }
+        .stock-out { color: #EF4444; }
         .btn-order { width: 100%; padding: 10px; background: #059669; color: white; border: none; border-radius: 25px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.2s; margin-top: 8px; }
         .btn-order:hover:not(:disabled) { background: #047857; }
         .btn-order:disabled { background: #D1D5DB; cursor: not-allowed; }
@@ -161,7 +164,7 @@ db.collection('animals').onSnapshot(function(snapshot) {
     document.getElementById('animalsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#DC2626;">Error loading animals. Please refresh the page.</div>';
 });
 
-// Real-time listener for all orders (used for admin, but filtered for customers)
+// Real-time listener for all orders
 db.collection('orders').onSnapshot(function(snapshot) {
     allOrders = [];
     snapshot.forEach(function(doc) {
@@ -222,6 +225,7 @@ function updateActivePhoneDisplay() {
 function updateAvailTags() {
     var html = '';
     types.forEach(function(type) {
+        // Count animals that are TRULY available (status available AND stock > 0)
         var count = animals.filter(function(a) {
             return a.type === type && a.status === 'available' && (a.stock || 1) > 0;
         }).length;
@@ -279,8 +283,16 @@ function displayGroupedAnimals() {
 
 function buildAnimalCards(animalArray) {
     return animalArray.map(function(animal) {
-        var stock = animal.stock || 1;
+        var stock = animal.stock || 0;
+        // TRULY available: status is 'available' AND stock > 0
         var isAvailable = animal.status === 'available' && stock > 0;
+        
+        // Stock color class
+        var stockColorClass = '';
+        if (stock === 0) stockColorClass = 'stock-out';
+        else if (stock <= 3) stockColorClass = 'stock-low';
+        else stockColorClass = 'stock-available';
+        
         var displayImage = (animal.images && animal.images.length > 0 && animal.images[0]) 
             ? animal.images[0] 
             : 'https://via.placeholder.com/400x200?text=No+Image';
@@ -288,23 +300,39 @@ function buildAnimalCards(animalArray) {
         var breed = animal.breed || '';
         var age = animal.age || '';
         
+        // Determine button text and status display
+        var buttonText = 'Sold Out';
+        var buttonDisabled = true;
+        var displayStatus = animal.status;
+        
+        if (isAvailable) {
+            buttonText = 'Order Now';
+            buttonDisabled = false;
+            displayStatus = 'available';
+        } else if (animal.status === 'reserved') {
+            buttonText = 'Reserved';
+            buttonDisabled = true;
+        } else if (stock === 0) {
+            buttonText = 'Out of Stock';
+            buttonDisabled = true;
+            displayStatus = 'sold';
+        }
+        
         return '<div class="animal-card">' +
             '<img src="' + displayImage + '" alt="' + escapeHtml(animal.name) + '" onerror="this.src=\'https://via.placeholder.com/400x200?text=Image+Not+Found\'">' +
             '<div class="animal-info">' +
             '<span class="animal-type">' + typeNames[animal.type] + '</span>' +
-            '<span class="status-badge status-' + animal.status + '">' + animal.status + '</span>' +
+            '<span class="status-badge status-' + displayStatus + '">' + displayStatus + '</span>' +
             '<h3 class="animal-name">' + escapeHtml(animal.name) + '</h3>' +
             '<div style="font-size:12px;color:#6B7280;">' + escapeHtml(breed) + (age ? ' | ' + escapeHtml(age) : '') + '</div>' +
             '<div class="animal-price">KSh ' + (animal.price || 0).toLocaleString() + '</div>' +
             '<div class="animal-location">📍 ' + escapeHtml(location) + '</div>' +
-            '<div class="animal-stock">📦 Stock: ' + stock + ' available</div>' +
+            '<div class="animal-stock ' + stockColorClass + '">📦 Stock: ' + stock + ' available</div>' +
             (animal.images && animal.images.length > 1 ? 
                 '<div class="image-gallery">' + animal.images.slice(0, 3).map(function(img) {
                     return '<img src="' + img + '" class="gallery-thumb" onclick="event.stopPropagation();window.open(this.src)" alt="gallery" onerror="this.style.display=\'none\'">';
                 }).join('') + '</div>' : '') +
-            '<button class="btn-order" onclick="openOrderModal(' + animal.id + ')" ' + (isAvailable ? '' : 'disabled') + '>' +
-            (isAvailable ? 'Order Now' : (animal.status === 'reserved' ? 'Reserved' : 'Sold Out')) +
-            '</button>' +
+            '<button class="btn-order" onclick="openOrderModal(' + animal.id + ')" ' + (buttonDisabled ? 'disabled' : '') + '>' + buttonText + '</button>' +
             '</div></div>';
     }).join('');
 }
@@ -340,6 +368,7 @@ function searchAnimals() {
 function openOrderModal(animalId) {
     var animal = animals.find(function(a) { return a.id === animalId; });
     if (!animal) return;
+    // Check both status AND stock
     if (animal.status !== 'available' || (animal.stock || 1) <= 0) {
         alert('Sorry, this animal is no longer available.');
         return;
@@ -394,12 +423,7 @@ async function submitOrder(e) {
         return false;
     }
     
-    // Calculate new stock
-    var newStock = (animal.stock || 1) - quantity;
-    var newStatus = newStock === 0 ? 'sold' : 'available';
-    
     try {
-        // Use Firestore transaction to ensure stock doesn't go negative
         var animalRef = db.collection('animals').doc(String(animal.id));
         
         await db.runTransaction(async function(transaction) {
@@ -412,13 +436,12 @@ async function submitOrder(e) {
                 throw new Error('Not enough stock available');
             }
             
-            // Update animal stock
+            var newStock = currentStock - quantity;
             transaction.update(animalRef, {
-                stock: currentStock - quantity,
-                status: (currentStock - quantity) === 0 ? 'sold' : 'available'
+                stock: newStock,
+                status: newStock === 0 ? 'sold' : 'available'
             });
             
-            // Add order
             transaction.set(db.collection('orders').doc(String(orderData.id)), orderData);
         });
         
@@ -441,7 +464,6 @@ function displayOrders() {
         return;
     }
     
-    // Filter orders by phone number (only show orders for this customer)
     var myOrders = allOrders.filter(function(order) {
         var orderPhone = (order.customerPhone || '').replace(/\s/g, '');
         var viewPhone = currentViewPhone.replace(/\s/g, '');
@@ -455,17 +477,12 @@ function displayOrders() {
     
     var reversed = myOrders.slice().reverse();
     container.innerHTML = reversed.map(function(order) {
-        var statusClass = '';
-        if (order.status === 'confirmed') statusClass = 'status-confirmed';
-        else if (order.status === 'cancelled') statusClass = 'status-cancelled';
-        else statusClass = 'status-' + order.status;
-        
         return '<div class="order-card">' +
             '<strong>' + escapeHtml(order.animalName || 'Animal') + '</strong>' +
             '<p style="font-size:12px;">Order ID: #' + order.id + '</p>' +
             '<p style="font-size:12px;">Customer: ' + escapeHtml(order.customerName) + '</p>' +
             '<p style="font-size:12px;">Quantity: ' + (order.quantity || 1) + ' | Date: ' + new Date(order.orderDate).toLocaleDateString() + '</p>' +
-            '<span class="status-badge ' + statusClass + '">' + order.status.toUpperCase() + '</span>' +
+            '<span class="status-badge status-' + order.status + '">' + order.status.toUpperCase() + '</span>' +
             '</div>';
     }).join('');
 }
@@ -479,12 +496,11 @@ function loadContactInfo() {
     document.getElementById('contactGrid').innerHTML = contactHtml;
 }
 
-// Close modal when clicking outside
 document.addEventListener('click', function(e) {
     if (e.target.id === 'orderModal') closeModal();
 });
 
-console.log('Chissano AnimalMarket loaded - Stock management and private orders enabled');
+console.log('Chissano AnimalMarket loaded - Stock management enabled');
 </script>
 </body>
 </html>
