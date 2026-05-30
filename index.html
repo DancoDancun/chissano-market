@@ -70,15 +70,19 @@
         .order-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .order-modal.show { display: flex; }
         .order-modal-box { background: white; border-radius: 16px; padding: 25px; max-width: 460px; width: 90%; }
-        /* Custom Alert Modal */
+        /* Custom Alert Modal - Updated for better order success display */
         .custom-alert { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
         .custom-alert.show { display: flex; }
-        .alert-box { background: white; border-radius: 16px; padding: 30px; max-width: 420px; width: 90%; text-align: center; }
-        .alert-box h3 { font-size: 22px; margin-bottom: 15px; }
-        .alert-box p { color: #4B5563; line-height: 1.6; margin-bottom: 25px; font-size: 14px; }
-        .alert-box button { padding: 12px 30px; background: #059669; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; }
+        .alert-box { background: white; border-radius: 16px; padding: 30px; max-width: 480px; width: 90%; text-align: center; }
+        .alert-box h3 { font-size: 24px; margin-bottom: 20px; color: #059669; }
+        .alert-box p { color: #4B5563; line-height: 1.6; margin-bottom: 15px; font-size: 14px; text-align: left; }
+        .alert-box .order-details { background: #F0FDF4; padding: 15px; border-radius: 12px; margin: 15px 0; text-align: left; }
+        .alert-box .order-details p { margin-bottom: 8px; }
+        .alert-box .next-steps { margin: 15px 0; }
+        .alert-box .next-steps p { margin-bottom: 8px; }
+        .alert-box button { padding: 12px 30px; background: #059669; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; margin-top: 10px; width: 100%; }
         .alert-box button:hover { background: #047857; }
-        .alert-icon { font-size: 50px; margin-bottom: 15px; }
+        .alert-icon { font-size: 60px; margin-bottom: 10px; }
         .alert-icon.success { color: #059669; }
         .alert-icon.error { color: #EF4444; }
         .alert-icon.warning { color: #F59E0B; }
@@ -116,8 +120,8 @@
 <!-- Order Modal -->
 <div class="order-modal" id="orderModal"><div class="order-modal-box"><button onclick="closeModal()" style="float:right;background:none;border:none;font-size:22px;cursor:pointer;">×</button><h2>Place Order</h2><form onsubmit="return submitOrder(event)"><input type="hidden" id="orderAnimalId"><div class="form-group"><label>Your Name *</label><input type="text" id="custName" required></div><div class="form-group"><label>Phone Number *</label><input type="tel" id="custPhone" required></div><div class="form-group"><label>Quantity</label><input type="number" id="orderQty" min="1" value="1"></div><button type="submit" class="btn-submit">Confirm Order</button></form></div></div>
 
-<!-- Custom Alert Modal -->
-<div class="custom-alert" id="customAlert"><div class="alert-box"><div class="alert-icon" id="alertIcon"></div><h3 id="alertTitle">Success</h3><p id="alertMessage"></p><button onclick="closeAlert()">OK</button></div></div>
+<!-- Custom Alert Modal - Updated for dynamic order success -->
+<div class="custom-alert" id="customAlert"><div class="alert-box"><div class="alert-icon" id="alertIcon"></div><h3 id="alertTitle">Success</h3><div id="alertMessage"></div><button onclick="closeAlert()">OK</button></div></div>
 
 <section class="orders-section" id="orders"><div class="container"><h2>My Orders</h2><div class="phone-verify-box" id="phoneVerifyBox"><input type="tel" id="viewPhoneInput" placeholder="Enter your phone number to see your orders" value=""><button onclick="setViewPhone()">View My Orders</button><span id="activePhoneDisplay"></span></div><div id="ordersList"><p style="text-align:center;padding:30px;">Enter your phone number above to see your orders.</p></div></div></section>
 <section class="contact-section" id="contact"><div class="container"><h2>Get In Touch</h2><div class="contact-grid" id="contactGrid"></div></div></section>
@@ -155,30 +159,62 @@ var typeNames = {
     cats: 'Cats'
 };
 
-// Custom Alert Function
+// Custom Alert Function - Updated for dynamic content
+function showOrderSuccessModal(animal, quantity, totalPrice) {
+    var alertDiv = document.getElementById('customAlert');
+    var iconDiv = document.getElementById('alertIcon');
+    var titleEl = document.getElementById('alertTitle');
+    var msgContainer = document.getElementById('alertMessage');
+    
+    titleEl.textContent = '✓ ORDER PLACED SUCCESSFULLY!';
+    iconDiv.innerHTML = '✓';
+    iconDiv.className = 'alert-icon success';
+    iconDiv.style.fontSize = '60px';
+    iconDiv.style.fontWeight = 'bold';
+    
+    // Create dynamic HTML content
+    msgContainer.innerHTML = `
+        <div class="order-details">
+            <p><strong>Order Details:</strong></p>
+            <p>• Animal: ${escapeHtml(animal.name)} (${escapeHtml(animal.breed || 'N/A')})</p>
+            <p>• Quantity: ${quantity}</p>
+            <p>• Total: KSh ${totalPrice.toLocaleString()}</p>
+        </div>
+        <div class="next-steps">
+            <p><strong>What happens next?</strong></p>
+            <p>1. Your order is being reviewed in less than 10 minutes</p>
+            <p>2. You will receive a WhatsApp confirmation or a call from someone on duty</p>
+            <p>3. Enter your phone number in "My Orders" to track the status</p>
+        </div>
+        <p style="text-align:center; margin-top:15px; color:#059669;">Thank you for shopping with Chissano AnimalMarket!</p>
+    `;
+    
+    alertDiv.classList.add('show');
+}
+
 function showCustomAlert(title, message, type) {
     var alertDiv = document.getElementById('customAlert');
     var iconDiv = document.getElementById('alertIcon');
     var titleEl = document.getElementById('alertTitle');
-    var msgEl = document.getElementById('alertMessage');
+    var msgContainer = document.getElementById('alertMessage');
     
     titleEl.textContent = title;
-    msgEl.textContent = message;
+    msgContainer.innerHTML = '<p>' + message + '</p>';
     
     if (type === 'success') {
         iconDiv.innerHTML = '✓';
         iconDiv.className = 'alert-icon success';
-        iconDiv.style.fontSize = '50px';
+        iconDiv.style.fontSize = '60px';
         iconDiv.style.fontWeight = 'bold';
     } else if (type === 'error') {
         iconDiv.innerHTML = '✗';
         iconDiv.className = 'alert-icon error';
-        iconDiv.style.fontSize = '50px';
+        iconDiv.style.fontSize = '60px';
         iconDiv.style.fontWeight = 'bold';
     } else {
         iconDiv.innerHTML = '!';
         iconDiv.className = 'alert-icon warning';
-        iconDiv.style.fontSize = '50px';
+        iconDiv.style.fontSize = '60px';
         iconDiv.style.fontWeight = 'bold';
     }
     
@@ -455,6 +491,8 @@ async function submitOrder(e) {
         return false;
     }
     
+    var totalPrice = (animal.price || 0) * quantity;
+    
     var orderData = {
         id: Date.now(),
         animalId: animal.id,
@@ -495,7 +533,8 @@ async function submitOrder(e) {
         });
         
         closeModal();
-        showCustomAlert('Order Successful!', 'Order placed successfully! You will receive confirmation via WhatsApp.\n\nYou can now enter your phone number in "My Orders" section to track your order.', 'success');
+        // Show dynamic order success modal with details
+        showOrderSuccessModal(animal, quantity, totalPrice);
         
     } catch (err) {
         console.error("Transaction error:", err);
@@ -549,7 +588,7 @@ document.addEventListener('click', function(e) {
     if (e.target.id === 'orderModal') closeModal();
 });
 
-console.log('Chissano AnimalMarket loaded - Custom modals enabled');
+console.log('Chissano AnimalMarket loaded - Dynamic order success modal enabled');
 </script>
 </body>
 </html>
