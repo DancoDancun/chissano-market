@@ -34,15 +34,22 @@
         .avail-tag span { background: #059669; color: white; padding: 2px 7px; border-radius: 10px; margin-left: 4px; font-size: 10px; }
         .section-header { grid-column: 1/-1; background: #059669; color: white; padding: 12px 18px; border-radius: 10px; margin: 16px 0 6px 0; font-weight: 700; display: flex; justify-content: space-between; }
         .animals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
-        .animal-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .animal-card img { width: 100%; height: 200px; object-fit: cover; }
+        .animal-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; }
+        .animal-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .animal-card img { width: 100%; height: 200px; object-fit: cover; background: #F3F4F6; }
         .animal-info { padding: 14px; }
-        .animal-type { display: inline-block; padding: 3px 8px; background: #D1FAE5; color: #065F46; border-radius: 12px; font-size: 10px; text-transform: uppercase; }
-        .animal-name { font-size: 16px; font-weight: 700; } .animal-price { font-size: 20px; font-weight: 700; color: #059669; }
-        .btn-order { width: 100%; padding: 10px; background: #059669; color: white; border: none; border-radius: 25px; cursor: pointer; font-size: 13px; font-weight: 600; }
+        .animal-type { display: inline-block; padding: 3px 8px; background: #D1FAE5; color: #065F46; border-radius: 12px; font-size: 10px; text-transform: uppercase; font-weight: 600; }
+        .animal-name { font-size: 16px; font-weight: 700; margin: 8px 0 4px; } 
+        .animal-price { font-size: 20px; font-weight: 700; color: #059669; margin: 6px 0; }
+        .animal-location { font-size: 11px; color: #6B7280; display: flex; align-items: center; gap: 4px; margin: 4px 0; }
+        .animal-stock { font-size: 11px; color: #6B7280; margin: 4px 0; }
+        .btn-order { width: 100%; padding: 10px; background: #059669; color: white; border: none; border-radius: 25px; cursor: pointer; font-size: 13px; font-weight: 600; transition: background 0.2s; }
+        .btn-order:hover:not(:disabled) { background: #047857; }
         .btn-order:disabled { background: #D1D5DB; cursor: not-allowed; }
         .status-badge { padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 600; text-transform: uppercase; float: right; }
-        .status-available { background: #D1FAE5; color: #065F46; } .status-reserved { background: #FEF3C7; color: #92400E; } .status-sold { background: #FEE2E2; color: #991B1B; }
+        .status-available { background: #D1FAE5; color: #065F46; } 
+        .status-reserved { background: #FEF3C7; color: #92400E; } 
+        .status-sold { background: #FEE2E2; color: #991B1B; }
         .about-section { padding: 50px 0; background: white; }
         .about-section h2 { font-size: 26px; margin-bottom: 18px; }
         .about-content { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
@@ -56,7 +63,7 @@
         .terms-box p { color: #4B5563; line-height: 1.7; font-size: 13px; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
         .modal.show { display: flex; } .modal-box { background: white; border-radius: 16px; padding: 25px; max-width: 460px; width: 90%; }
-        .form-group { margin-bottom: 12px; } .form-group label { display: block; font-weight: 600; font-size: 12px; }
+        .form-group { margin-bottom: 12px; } .form-group label { display: block; font-weight: 600; font-size: 12px; margin-bottom: 4px; }
         .form-group input { width: 100%; padding: 9px 12px; border: 1px solid #D1D5DB; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; }
         .btn-submit { width: 100%; padding: 12px; background: #059669; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
         .orders-section { padding: 40px 0; background: white; } .order-card { background: #F9FAFB; padding: 14px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #059669; }
@@ -64,45 +71,326 @@
         .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 850px; margin: 25px auto 0; }
         .contact-item { padding: 18px; background: rgba(255,255,255,0.05); border-radius: 12px; }
         .site-footer { background: #111827; color: #9CA3AF; padding: 35px 0 18px; text-align: center; }
-        .whatsapp-float { position: fixed; bottom: 75px; right: 18px; background: #25D366; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; z-index: 99; text-decoration: none; }
+        .whatsapp-float { position: fixed; bottom: 75px; right: 18px; background: #25D366; color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; z-index: 99; text-decoration: none; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
         .admin-link { position: fixed; bottom: 18px; right: 18px; background: #1F2937; color: white; padding: 8px 18px; border-radius: 25px; text-decoration: none; font-size: 12px; z-index: 99; }
-        @media (max-width: 768px) { .hamburger{display:block} .nav-links{display:none;flex-direction:column;position:absolute;top:65px;left:0;right:0;background:white;padding:15px;z-index:200} .nav-links.show{display:flex} .hero h2{font-size:28px} .about-content{grid-template-columns:1fr} }
+        .image-gallery { display: flex; gap: 4px; margin-top: 8px; overflow-x: auto; }
+        .gallery-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 6px; cursor: pointer; border: 1px solid #E5E7EB; }
+        .loading-spinner { text-align: center; padding: 40px; color: #6B7280; }
+        @media (max-width: 768px) { .hamburger{display:block} .nav-links{display:none;flex-direction:column;position:absolute;top:65px;left:0;right:0;background:white;padding:15px;z-index:200;box-shadow:0 4px 6px rgba(0,0,0,0.1)} .nav-links.show{display:flex} .hero h2{font-size:28px} .about-content{grid-template-columns:1fr} }
     </style>
 </head>
 <body>
-<div class="trust-bar">Registered Business &nbsp;|&nbsp; Nationwide Delivery &nbsp;|&nbsp; Quality Guaranteed</div>
-<nav class="navbar"><div class="container"><h1 class="logo">Chissano AnimalMarket</h1><button class="hamburger" onclick="toggleMenu()">&#9776;</button><div class="nav-links" id="navMenu"><a href="#home">Home</a><a href="#animals">Animals</a><a href="#about">About Us</a><a href="#orders">My Orders</a><a href="#terms">Terms</a><a href="#contact">Contact</a></div></div></nav>
-<header class="hero" id="home"><div class="container"><h2>Find Your Perfect Companion</h2><p>Discover healthy domestic animals from trusted breeders across Kenya</p><div class="search-bar"><input type="text" id="searchInput" placeholder="Search..."><button onclick="searchAnimals()">Search</button></div></div></header>
+<div class="trust-bar">Registered Business | Nationwide Delivery | Quality Guaranteed</div>
+<nav class="navbar"><div class="container"><h1 class="logo">Chissano AnimalMarket</h1><button class="hamburger" onclick="toggleMenu()">☰</button><div class="nav-links" id="navMenu"><a href="#home">Home</a><a href="#animals">Animals</a><a href="#about">About Us</a><a href="#orders">My Orders</a><a href="#terms">Terms</a><a href="#contact">Contact</a></div></div></nav>
+<header class="hero" id="home"><div class="container"><h2>Find Your Perfect Companion</h2><p>Discover healthy domestic animals from trusted breeders across Kenya</p><div class="search-bar"><input type="text" id="searchInput" placeholder="Search by name or breed..." onkeyup="searchAnimals()"><button onclick="searchAnimals()">Search</button></div></div></header>
 <section class="filters"><div class="container"><div class="filter-buttons"><button class="filter-btn active" onclick="filterAnimals('all')">All</button><button class="filter-btn" onclick="filterAnimals('cattle')">Cattle</button><button class="filter-btn" onclick="filterAnimals('goats')">Goats</button><button class="filter-btn" onclick="filterAnimals('sheep')">Sheep</button><button class="filter-btn" onclick="filterAnimals('poultry')">Poultry</button><button class="filter-btn" onclick="filterAnimals('pigs')">Pigs</button><button class="filter-btn" onclick="filterAnimals('dogs')">Dogs</button><button class="filter-btn" onclick="filterAnimals('cats')">Cats</button></div></div></section>
-<main class="animals-section" id="animals"><div class="container"><h2>Available Animals</h2><div class="avail-tags" id="availTags"></div><div class="animals-grid" id="animalsGrid"><p style="text-align:center;padding:40px;">Loading...</p></div></div></main>
-<section class="about-section" id="about"><div class="container"><h2>About Chissano AnimalMarket</h2><div class="about-content"><div class="about-text"><p><strong>Chissano AnimalMarket</strong> is a trusted provider of quality domestic animals in Kenya. We connect farmers and families with healthy, well-bred animals.</p><p>Our animals are vaccinated, dewormed, and ready for their new homes.</p><p><strong>Physical Address:</strong> Chissano Farm, Nandi County, along Kapsabet-Eldoret Road, Kenya.</p></div><div class="about-features"><div class="about-feature">Quality Guaranteed</div><div class="about-feature">Nationwide Delivery</div><div class="about-feature">Vaccinated Animals</div><div class="about-feature">Trusted Since 2020</div></div></div></div></section>
+<main class="animals-section" id="animals"><div class="container"><h2>Available Animals</h2><div class="avail-tags" id="availTags"></div><div class="animals-grid" id="animalsGrid"><div class="loading-spinner">Loading animals...</div></div></div></main>
+<section class="about-section" id="about"><div class="container"><h2>About Chissano AnimalMarket</h2><div class="about-content"><div class="about-text"><p><strong>Chissano AnimalMarket</strong> is a trusted provider of quality domestic animals in Kenya. We connect farmers and families with healthy, well-bred animals.</p><p>Our animals are vaccinated, dewormed, and ready for their new homes. All photos are real images of available animals taken from our farm.</p><p><strong>Physical Address:</strong> Chissano Farm, Nandi County, along Kapsabet-Eldoret Road, Kenya.</p></div><div class="about-features"><div class="about-feature">Quality Guaranteed</div><div class="about-feature">Nationwide Delivery</div><div class="about-feature">Vaccinated Animals</div><div class="about-feature">Trusted Since 2020</div></div></div></div></section>
 <section class="terms-section" id="terms"><div class="container"><h2>Terms & Conditions</h2><div class="terms-box"><h3>1. Ordering</h3><p>Orders processed first-come, first-served. Confirmation via WhatsApp within 24 hours.</p><h3>2. Pricing</h3><p>All prices in KSh. Payment via M-Pesa, Bank Transfer, or Cash on Delivery.</p><h3>3. Delivery</h3><p>Nationwide delivery available. Fees vary by location. 24-72 hours delivery.</p><h3>4. Health Guarantee</h3><p>All animals vaccinated and dewormed. 48-hour health guarantee after delivery.</p><h3>5. Returns</h3><p>Returns accepted within 48 hours if health issues. Refund within 7 working days.</p><h3>6. Contact</h3><p>Phone: +254 724934269 | Chissano Farm, Nandi County, Kenya</p></div></div></section>
-<div class="modal" id="orderModal"><div class="modal-box"><button onclick="closeModal()" style="float:right;background:none;border:none;font-size:22px;cursor:pointer;">&times;</button><h2>Place Order</h2><form onsubmit="return submitOrder(event)"><input type="hidden" id="orderAnimalId"><div class="form-group"><label>Your Name *</label><input type="text" id="custName" required></div><div class="form-group"><label>Phone Number *</label><input type="tel" id="custPhone" required></div><div class="form-group"><label>Quantity</label><input type="number" id="orderQty" min="1" value="1"></div><button type="submit" class="btn-submit">Confirm Order</button></form></div></div>
-<section class="orders-section" id="orders"><div class="container"><h2>My Orders</h2><div id="ordersList"><p style="text-align:center;padding:30px;">No orders yet.</p></div></div></section>
+<div class="modal" id="orderModal"><div class="modal-box"><button onclick="closeModal()" style="float:right;background:none;border:none;font-size:22px;cursor:pointer;">×</button><h2>Place Order</h2><form onsubmit="return submitOrder(event)"><input type="hidden" id="orderAnimalId"><div class="form-group"><label>Your Name *</label><input type="text" id="custName" required></div><div class="form-group"><label>Phone Number *</label><input type="tel" id="custPhone" required></div><div class="form-group"><label>Quantity</label><input type="number" id="orderQty" min="1" value="1"></div><button type="submit" class="btn-submit">Confirm Order</button></form></div></div>
+<section class="orders-section" id="orders"><div class="container"><h2>My Orders</h2><div id="ordersList"><p style="text-align:center;padding:30px;">No orders yet. Place an order above.</p></div></div></section>
 <section class="contact-section" id="contact"><div class="container"><h2>Get In Touch</h2><div class="contact-grid" id="contactGrid"></div></div></section>
-<footer class="site-footer"><div class="container"><p>&copy; 2024 Chissano AnimalMarket | Nandi County, Kenya</p></div></footer>
-<a href="https://wa.me/254724934269" class="whatsapp-float" target="_blank">W</a>
-<a href="admin.html" class="admin-link">Admin</a>
+<footer class="site-footer"><div class="container"><p>© 2024 Chissano AnimalMarket | Nandi County, Kenya</p></div></footer>
+<a href="https://wa.me/254724934269" class="whatsapp-float" target="_blank">📱</a>
+<a href="admin.html" class="admin-link">Admin Panel</a>
+
 <script>
 function toggleMenu(){document.getElementById('navMenu').classList.toggle('show');}
-firebase.initializeApp({apiKey:"AIzaSyBKjmmBhRTMypUzCYdbrzHSOsAxx6EJYKI",authDomain:"chissano-market.firebaseapp.com",projectId:"chissano-market",storageBucket:"chissano-market.firebasestorage.app",messagingSenderId:"91066215347",appId:"1:91066215347:web:60c02df70217910c25b9c6"});
-var db=firebase.firestore(),animals=[],orders=[],settings={},currentFilter='all';
-var types=['cattle','goats','sheep','poultry','pigs','dogs','cats'];
-var names={cattle:'Cattle',goats:'Goats',sheep:'Sheep',poultry:'Poultry',pigs:'Pigs',dogs:'Dogs',cats:'Cats'};
-db.collection('animals').onSnapshot(function(s){animals=[];s.forEach(function(d){var x=d.data();x.id=parseInt(d.id);animals.push(x);});displayGrouped(animals);displayTags();});
-db.collection('orders').onSnapshot(function(s){orders=[];s.forEach(function(d){orders.push(d.data());});displayOrders();});
-db.collection('settings').doc('main').onSnapshot(function(d){if(d.exists){settings=d.data();loadContact();}});
-function displayTags(){var h='';types.forEach(function(t){var c=animals.filter(function(a){return a.type===t&&a.status==='available';}).length;if(c>0)h+='<span class="avail-tag" onclick="filterAnimals(\''+t+'\')">'+names[t]+' <span>'+c+'</span></span>';});document.getElementById('availTags').innerHTML=h;}
-function displayGrouped(arr){var g=document.getElementById('animalsGrid');if(!arr.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;">No animals found</div>';return;}if(currentFilter!=='all'){g.innerHTML=buildCards(arr);return;}var h='';types.forEach(function(t){var ta=arr.filter(function(a){return a.type===t;});if(ta.length){h+='<div class="section-header"><span>'+names[t]+'</span><span>'+ta.filter(function(a){return a.status==='available';}).length+' available</span></div>'+buildCards(ta);}});g.innerHTML=h;}
-function buildCards(arr){return arr.map(function(a){var s=a.stock||0,av=a.status==='available'&&s>0;var img=(a.images&&a.images.length)?a.images[0]:'https://via.placeholder.com/400x200';return '<div class="animal-card"><img src="'+img+'" alt=""><div class="animal-info"><span class="animal-type">'+a.type+'</span><span class="status-badge status-'+a.status+'">'+a.status+'</span><h3 class="animal-name">'+a.name+'</h3><p style="font-size:12px;color:#6B7280;">'+(a.breed||'')+' - '+(a.age||'')+'</p><p class="animal-price">KSh '+a.price.toLocaleString()+'</p><p style="font-size:12px;">'+(a.location||'')+'</p><button class="btn-order" onclick="openModal('+a.id+')" '+(av?'':'disabled')+'>'+(av?'Order Now':(a.status==='reserved'?'Reserved':'Sold Out'))+'</button></div></div>';}).join('');}
-function filterAnimals(type){currentFilter=type;document.querySelectorAll('.filter-btn').forEach(function(b){b.classList.remove('active');});if(event&&event.target)event.target.classList.add('active');displayGrouped(type==='all'?animals:animals.filter(function(a){return a.type===type;}));}
-function searchAnimals(){var q=document.getElementById('searchInput').value.toLowerCase();document.getElementById('animalsGrid').innerHTML=buildCards(animals.filter(function(a){return a.name.toLowerCase().includes(q)||(a.breed||'').toLowerCase().includes(q);}));}
-function openModal(id){document.getElementById('orderAnimalId').value=id;document.getElementById('custName').value='';document.getElementById('custPhone').value='';document.getElementById('orderQty').value='1';document.getElementById('orderModal').classList.add('show');}
-function closeModal(){document.getElementById('orderModal').classList.remove('show');}
-function submitOrder(e){e.preventDefault();var id=parseInt(document.getElementById('orderAnimalId').value);var a=animals.find(function(x){return x.id===id;});db.collection('orders').doc(String(Date.now())).set({id:Date.now(),animalId:id,animalName:a?a.name:'Unknown',customerName:document.getElementById('custName').value,customerPhone:document.getElementById('custPhone').value,quantity:parseInt(document.getElementById('orderQty').value),orderDate:new Date().toISOString(),status:'pending'});closeModal();alert('Order placed!');return false;}
-function displayOrders(){var l=document.getElementById('ordersList');if(!orders.length){l.innerHTML='<p style="text-align:center;padding:30px;">No orders yet.</p>';return;}l.innerHTML=orders.slice().reverse().map(function(o){return '<div class="order-card"><strong>'+(o.animalName||'Animal')+'</strong><p style="font-size:12px;">'+o.customerName+' | '+o.customerPhone+'</p><p style="font-size:12px;">Qty: '+o.quantity+' | '+new Date(o.orderDate).toLocaleDateString()+'</p><span class="status-badge status-'+o.status+'">'+o.status+'</span></div>';}).join('');}
-function loadContact(){var s=settings||{};document.getElementById('contactGrid').innerHTML='<div class="contact-item"><h3>Phone</h3><p>'+(s.contactPhone||'+254 724934269')+'</p></div><div class="contact-item"><h3>WhatsApp</h3><p>'+(s.contactPhone||'+254 724934269')+'</p></div><div class="contact-item"><h3>Email</h3><p>'+(s.contactEmail||'info@animalmarket.co.ke')+'</p></div><div class="contact-item"><h3>Location</h3><p>'+(s.businessLocation||'Nandi County, Kenya')+'</p></div><div class="contact-item"><h3>Hours</h3><p>'+(s.businessHours||'Mon-Sat 8AM-6PM')+'</p></div>';}
-document.addEventListener('click',function(e){if(e.target.id==='orderModal')closeModal();});
+
+// Firebase Configuration
+firebase.initializeApp({
+    apiKey: "AIzaSyBKjmmBhRTMypUzCYdbrzHSOsAxx6EJYKI",
+    authDomain: "chissano-market.firebaseapp.com",
+    projectId: "chissano-market",
+    storageBucket: "chissano-market.firebasestorage.app",
+    messagingSenderId: "91066215347",
+    appId: "1:91066215347:web:60c02df70217910c25b9c6"
+});
+
+var db = firebase.firestore();
+var animals = [];
+var orders = [];
+var settings = {};
+var currentFilter = 'all';
+var searchQuery = '';
+
+var types = ['cattle', 'goats', 'sheep', 'poultry', 'pigs', 'dogs', 'cats'];
+var typeNames = {
+    cattle: 'Cattle',
+    goats: 'Goats',
+    sheep: 'Sheep',
+    poultry: 'Poultry',
+    pigs: 'Pigs',
+    dogs: 'Dogs',
+    cats: 'Cats'
+};
+
+// Real-time listeners
+db.collection('animals').onSnapshot(function(snapshot) {
+    animals = [];
+    snapshot.forEach(function(doc) {
+        var data = doc.data();
+        data.id = parseInt(doc.id);
+        animals.push(data);
+    });
+    displayGroupedAnimals();
+    updateAvailTags();
+}, function(error) {
+    console.error("Animals listen error:", error);
+    document.getElementById('animalsGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#DC2626;">Error loading animals. Check your connection.</div>';
+});
+
+db.collection('orders').onSnapshot(function(snapshot) {
+    orders = [];
+    snapshot.forEach(function(doc) {
+        orders.push(doc.data());
+    });
+    displayOrders();
+});
+
+db.collection('settings').doc('main').onSnapshot(function(doc) {
+    if (doc.exists) {
+        settings = doc.data();
+        loadContactInfo();
+    }
+});
+
+function updateAvailTags() {
+    var html = '';
+    types.forEach(function(type) {
+        var count = animals.filter(function(a) {
+            return a.type === type && a.status === 'available' && (a.stock || 1) > 0;
+        }).length;
+        if (count > 0) {
+            html += '<span class="avail-tag" onclick="filterAnimals(\'' + type + '\')">' + typeNames[type] + ' <span>' + count + '</span></span>';
+        }
+    });
+    document.getElementById('availTags').innerHTML = html;
+}
+
+function getFilteredAnimals() {
+    var filtered = animals;
+    
+    // Apply type filter
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(function(a) { return a.type === currentFilter; });
+    }
+    
+    // Apply search query
+    if (searchQuery) {
+        var q = searchQuery.toLowerCase();
+        filtered = filtered.filter(function(a) {
+            return (a.name && a.name.toLowerCase().includes(q)) || 
+                   (a.breed && a.breed.toLowerCase().includes(q)) ||
+                   (a.type && a.type.toLowerCase().includes(q));
+        });
+    }
+    
+    return filtered;
+}
+
+function displayGroupedAnimals() {
+    var container = document.getElementById('animalsGrid');
+    var filtered = getFilteredAnimals();
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;">No animals found matching your criteria.</div>';
+        return;
+    }
+    
+    if (currentFilter !== 'all') {
+        container.innerHTML = buildAnimalCards(filtered);
+        return;
+    }
+    
+    // Group by type for "all" filter
+    var html = '';
+    types.forEach(function(type) {
+        var typeAnimals = filtered.filter(function(a) { return a.type === type; });
+        if (typeAnimals.length > 0) {
+            var availableCount = typeAnimals.filter(function(a) { return a.status === 'available' && (a.stock || 1) > 0; }).length;
+            html += '<div class="section-header"><span>' + typeNames[type] + '</span><span>' + availableCount + ' available</span></div>';
+            html += buildAnimalCards(typeAnimals);
+        }
+    });
+    container.innerHTML = html;
+}
+
+function buildAnimalCards(animalArray) {
+    return animalArray.map(function(animal) {
+        var stock = animal.stock || 1;
+        var isAvailable = animal.status === 'available' && stock > 0;
+        var displayImage = (animal.images && animal.images.length > 0) ? animal.images[0] : 'https://via.placeholder.com/400x200?text=No+Image';
+        var location = animal.location || 'Nandi County, Kenya';
+        var breed = animal.breed || '';
+        var age = animal.age || '';
+        
+        return '<div class="animal-card">' +
+            '<img src="' + displayImage + '" alt="' + animal.name + '" onerror="this.src=\'https://via.placeholder.com/400x200?text=Image+Loading\'">' +
+            '<div class="animal-info">' +
+            '<span class="animal-type">' + typeNames[animal.type] + '</span>' +
+            '<span class="status-badge status-' + animal.status + '">' + animal.status + '</span>' +
+            '<h3 class="animal-name">' + escapeHtml(animal.name) + '</h3>' +
+            '<div style="font-size:12px;color:#6B7280;">' + escapeHtml(breed) + (age ? ' | ' + escapeHtml(age) : '') + '</div>' +
+            '<div class="animal-price">KSh ' + (animal.price || 0).toLocaleString() + '</div>' +
+            '<div class="animal-location">📍 ' + escapeHtml(location) + '</div>' +
+            '<div class="animal-stock">📦 Stock: ' + stock + ' available</div>' +
+            (animal.images && animal.images.length > 1 ? 
+                '<div class="image-gallery">' + animal.images.slice(0, 3).map(function(img) {
+                    return '<img src="' + img + '" class="gallery-thumb" onclick="event.stopPropagation();window.open(this.src)" alt="gallery">';
+                }).join('') + '</div>' : '') +
+            '<button class="btn-order" onclick="openOrderModal(' + animal.id + ')" ' + (isAvailable ? '' : 'disabled') + '>' +
+            (isAvailable ? 'Order Now' : (animal.status === 'reserved' ? 'Reserved' : 'Sold Out')) +
+            '</button>' +
+            '</div></div>';
+    }).join('');
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+function filterAnimals(type) {
+    currentFilter = type;
+    searchQuery = '';
+    document.getElementById('searchInput').value = '';
+    document.querySelectorAll('.filter-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+    });
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
+    displayGroupedAnimals();
+}
+
+function searchAnimals() {
+    searchQuery = document.getElementById('searchInput').value;
+    displayGroupedAnimals();
+}
+
+function openOrderModal(animalId) {
+    var animal = animals.find(function(a) { return a.id === animalId; });
+    if (!animal) return;
+    if (animal.status !== 'available' || (animal.stock || 1) <= 0) {
+        alert('Sorry, this animal is no longer available.');
+        return;
+    }
+    document.getElementById('orderAnimalId').value = animalId;
+    document.getElementById('custName').value = '';
+    document.getElementById('custPhone').value = '';
+    document.getElementById('orderQty').value = '1';
+    document.getElementById('orderModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('orderModal').classList.remove('show');
+}
+
+function submitOrder(e) {
+    e.preventDefault();
+    var animalId = parseInt(document.getElementById('orderAnimalId').value);
+    var animal = animals.find(function(a) { return a.id === animalId; });
+    
+    if (!animal) {
+        alert('Animal not found');
+        return false;
+    }
+    
+    if (animal.status !== 'available' || (animal.stock || 1) <= 0) {
+        alert('Sorry, this animal is no longer available.');
+        closeModal();
+        return false;
+    }
+    
+    var orderData = {
+        id: Date.now(),
+        animalId: animal.id,
+        animalName: animal.name,
+        animalType: animal.type,
+        customerName: document.getElementById('custName').value.trim(),
+        customerPhone: document.getElementById('custPhone').value.trim(),
+        quantity: parseInt(document.getElementById('orderQty').value) || 1,
+        orderDate: new Date().toISOString(),
+        status: 'pending'
+    };
+    
+    if (!orderData.customerName || !orderData.customerPhone) {
+        alert('Please fill in your name and phone number.');
+        return false;
+    }
+    
+    db.collection('orders').doc(String(orderData.id)).set(orderData)
+        .then(function() {
+            closeModal();
+            alert('Order placed successfully! You will receive confirmation via WhatsApp.');
+            document.getElementById('custName').value = '';
+            document.getElementById('custPhone').value = '';
+        })
+        .catch(function(error) {
+            console.error("Order error:", error);
+            alert('Error placing order. Please try again.');
+        });
+    
+    return false;
+}
+
+function displayOrders() {
+    var container = document.getElementById('ordersList');
+    if (!orders.length) {
+        container.innerHTML = '<p style="text-align:center;padding:30px;">No orders yet. Place an order above.</p>';
+        return;
+    }
+    
+    var reversed = orders.slice().reverse();
+    container.innerHTML = reversed.map(function(order) {
+        return '<div class="order-card">' +
+            '<strong>' + escapeHtml(order.animalName || 'Animal') + '</strong>' +
+            '<p style="font-size:12px;">Customer: ' + escapeHtml(order.customerName) + ' | ' + escapeHtml(order.customerPhone) + '</p>' +
+            '<p style="font-size:12px;">Quantity: ' + (order.quantity || 1) + ' | Date: ' + new Date(order.orderDate).toLocaleDateString() + '</p>' +
+            '<span class="status-badge status-' + order.status + '">' + order.status + '</span>' +
+            '</div>';
+    }).join('');
+}
+
+function loadContactInfo() {
+    var contactHtml = '<div class="contact-item"><h3>Phone</h3><p>' + (settings.contactPhone || '+254 724934269') + '</p></div>' +
+        '<div class="contact-item"><h3>WhatsApp</h3><p>' + (settings.contactPhone || '+254 724934269') + '</p></div>' +
+        '<div class="contact-item"><h3>Email</h3><p>' + (settings.contactEmail || 'info@chissano.co.ke') + '</p></div>' +
+        '<div class="contact-item"><h3>Location</h3><p>' + (settings.businessLocation || 'Nandi County, Kenya') + '</p></div>' +
+        '<div class="contact-item"><h3>Hours</h3><p>' + (settings.businessHours || 'Mon-Sat 8AM-6PM') + '</p></div>';
+    document.getElementById('contactGrid').innerHTML = contactHtml;
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'orderModal') closeModal();
+});
+
+// Handle anchor links for smooth scrolling
+document.querySelectorAll('.nav-links a').forEach(function(link) {
+    link.addEventListener('click', function(e) {
+        var targetId = this.getAttribute('href');
+        if (targetId && targetId !== '#') {
+            e.preventDefault();
+            var target = document.querySelector(targetId);
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+                if (window.innerWidth <= 768) {
+                    document.getElementById('navMenu').classList.remove('show');
+                }
+            }
+        }
+    });
+});
+
+// Initial load
+console.log('Chissano AnimalMarket loaded - Images supported from Firebase Storage');
 </script>
 </body>
 </html>
