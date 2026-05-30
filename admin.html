@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <style>
         :root { --primary: #059669; --dark: #1F2937; --gray-100: #F3F4F6; --gray-200: #E5E7EB; --gray-500: #6B7280; --white: #FFFFFF; --shadow: 0 1px 3px rgba(0,0,0,0.1); --radius: 10px; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -58,6 +59,16 @@
         .error-text { color: #DC2626; font-size: 12px; margin-top: 8px; }
         @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .form-row { grid-template-columns: 1fr; } }
         .cloud-badge { background: #E0F2FE; color: #0369A1; font-size: 10px; border-radius: 20px; padding: 3px 8px; margin-left: 10px; display: inline-block; vertical-align: middle; }
+        .image-preview-area { margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .preview-img { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid var(--gray-200); }
+        .upload-progress { width: 100%; height: 4px; background: var(--gray-200); border-radius: 2px; margin-top: 10px; overflow: hidden; display: none; }
+        .upload-progress-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s; }
+        .image-input-wrapper { border: 2px dashed var(--gray-300); border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--gray-50); }
+        .image-input-wrapper:hover { border-color: var(--primary); background: #ECFDF5; }
+        .image-input-wrapper input { display: none; }
+        .image-input-label { cursor: pointer; display: inline-block; color: var(--gray-500); font-size: 13px; }
+        .remove-img-btn { position: absolute; top: -5px; right: -5px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .img-preview-wrapper { position: relative; display: inline-block; margin-right: 8px; margin-bottom: 8px; }
     </style>
 </head>
 <body>
@@ -80,7 +91,47 @@
     <div id="tab-dashboard" class="section active"><div class="stats-grid"><div class="stat-card"><div class="label">Total Animals</div><div class="value" id="dTotal">-</div></div><div class="stat-card"><div class="label">Available</div><div class="value" id="dAvail">-</div></div><div class="stat-card"><div class="label">Total Orders</div><div class="value" id="dOrders">-</div></div><div class="stat-card"><div class="label">Pending</div><div class="value" id="dPending">-</div></div></div></div>
     <div id="tab-animals" class="section"><div class="card"><div class="card-header"><h3>All Animals</h3><input type="text" placeholder="Search..." oninput="renderAnimals()" id="animalSearch" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;width:200px;"></div><div class="card-body"><table><thead><tr><th>Image</th><th>Name</th><th>Type</th><th>Breed</th><th>Price</th><th>Stock</th><th>Images</th><th>Status</th><th>Actions</th></tr></thead><tbody id="animalsTable"></tbody></table></div></div></div>
     <div id="tab-orders" class="section"><div class="card"><div class="card-header"><h3>All Orders</h3><select onchange="renderOrders()" id="orderFilter" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;"><option value="all">All</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div><div class="card-body"><table><thead><tr><th>Order ID</th><th>Animal</th><th>Customer</th><th>Phone</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div></div>
-    <div id="tab-add" class="section"><div class="card"><div class="card-header"><h3>Add New Animal</h3></div><div class="card-body"><form onsubmit="addAnimal(event)" id="addForm"><div class="form-row"><div class="form-group"><label>Name *</label><input type="text" id="aName" required></div><div class="form-group"><label>Type *</label><select id="aType" required><option value="">Select...</option><option value="cattle">Cattle</option><option value="goats">Goats</option><option value="sheep">Sheep</option><option value="poultry">Poultry</option><option value="pigs">Pigs</option><option value="dogs">Dogs</option><option value="cats">Cats</option></select></div></div><div class="form-row"><div class="form-group"><label>Breed *</label><input type="text" id="aBreed" required></div><div class="form-group"><label>Age *</label><input type="text" id="aAge" required></div></div><div class="form-row"><div class="form-group"><label>Price (KSh) *</label><input type="number" id="aPrice" required></div><div class="form-group"><label>Location *</label><input type="text" id="aLocation" required></div></div><div class="form-row"><div class="form-group"><label>Stock *</label><input type="number" id="aStock" value="1" min="1" required></div><div class="form-group"><label>Status</label><select id="aStatus"><option value="available">Available</option><option value="reserved">Reserved</option><option value="sold">Sold</option></select></div></div><div class="form-group"><label>Image URLs (comma separated)</label><input type="text" id="aImages" placeholder="url1.jpg,url2.jpg"></div><button type="submit" class="btn btn-primary">Add Animal to Firebase</button></form></div></div></div>
+    <div id="tab-add" class="section">
+        <div class="card">
+            <div class="card-header"><h3>Add New Animal</h3></div>
+            <div class="card-body">
+                <form onsubmit="addAnimal(event)" id="addForm">
+                    <div class="form-row">
+                        <div class="form-group"><label>Name *</label><input type="text" id="aName" required></div>
+                        <div class="form-group"><label>Type *</label><select id="aType" required><option value="">Select...</option><option value="cattle">Cattle</option><option value="goats">Goats</option><option value="sheep">Sheep</option><option value="poultry">Poultry</option><option value="pigs">Pigs</option><option value="dogs">Dogs</option><option value="cats">Cats</option></select></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Breed *</label><input type="text" id="aBreed" required></div>
+                        <div class="form-group"><label>Age *</label><input type="text" id="aAge" required></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Price (KSh) *</label><input type="number" id="aPrice" required></div>
+                        <div class="form-group"><label>Location *</label><input type="text" id="aLocation" required></div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Stock *</label><input type="number" id="aStock" value="1" min="1" required></div>
+                        <div class="form-group"><label>Status</label><select id="aStatus"><option value="available">Available</option><option value="reserved">Reserved</option><option value="sold">Sold</option></select></div>
+                    </div>
+                    
+                    <!-- Image Upload Section - Select from Device -->
+                    <div class="form-group">
+                        <label>Animal Photos (select from device)</label>
+                        <div class="image-input-wrapper" onclick="document.getElementById('imageInput').click()">
+                            <input type="file" id="imageInput" accept="image/*" multiple style="display:none" onchange="handleImageSelect(event)">
+                            <div class="image-input-label">Click or tap to select images from your device</div>
+                            <div style="font-size:11px; color:#6B7280; margin-top:5px;">Supports JPG, PNG, GIF. Multiple images allowed.</div>
+                        </div>
+                        <div class="upload-progress" id="uploadProgress">
+                            <div class="upload-progress-bar" id="uploadProgressBar"></div>
+                        </div>
+                        <div class="image-preview-area" id="imagePreviewArea"></div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="submitBtn">Add Animal to Firebase</button>
+                </form>
+            </div>
+        </div>
+    </div>
     <div id="tab-settings" class="section">
         <div class="card"><div class="card-header"><h3>Business Info <span class="cloud-badge">Cloud Sync</span></h3></div><div class="card-body"><form onsubmit="saveSettings(event)"><div class="form-row"><div class="form-group"><label>Business Name</label><input type="text" id="sName"></div><div class="form-group"><label>Currency</label><input type="text" id="sCurrency"></div></div><div class="form-row"><div class="form-group"><label>Phone Number</label><input type="text" id="sPhone"></div><div class="form-group"><label>Email Address</label><input type="email" id="sEmail"></div></div><div class="form-row"><div class="form-group"><label>Location</label><input type="text" id="sLocation"></div><div class="form-group"><label>Business Hours</label><input type="text" id="sHours"></div></div><button type="submit" class="btn btn-primary">Save to Cloud</button></form></div></div>
         <div class="card"><div class="card-header"><h3>EmailJS (2FA) - Real Verification Codes <span class="cloud-badge">Cloud Sync</span></h3></div><div class="card-body"><form onsubmit="saveEmailJS(event)"><div class="form-group"><label>Public Key</label><input type="text" id="ePublicKey" placeholder="user_xxxxx"></div><div class="form-row"><div class="form-group"><label>Service ID</label><input type="text" id="eServiceId" placeholder="service_xxxx"></div><div class="form-group"><label>Template ID</label><input type="text" id="eTemplateId" placeholder="template_xxxx"></div></div><div class="form-group"><label>Admin Email (receives 2FA codes)</label><input type="email" id="eAdminEmail" placeholder="admin@chissano.co.ke"></div><div style="display:flex;gap:10px;"><button type="submit" class="btn btn-primary">Save to Cloud</button><button type="button" class="btn btn-info" onclick="testEmailJS()">Test Email</button></div></form><p style="font-size:12px; color:#6B7280; margin-top:12px;">Saved settings apply immediately to login page on any device.</p></div></div>
@@ -94,7 +145,10 @@
 
 <script>
 firebase.initializeApp({apiKey:"AIzaSyBKjmmBhRTMypUzCYdbrzHSOsAxx6EJYKI",authDomain:"chissano-market.firebaseapp.com",projectId:"chissano-market",storageBucket:"chissano-market.firebasestorage.app",messagingSenderId:"91066215347",appId:"1:91066215347:web:60c02df70217910c25b9c6"});
-var db=firebase.firestore(), animals=[], orders=[], settings={}, emailjsSettings={}, adminCreds={username:'admin',password:'admin123'};
+var db=firebase.firestore();
+var storage=firebase.storage();
+var animals=[], orders=[], settings={}, emailjsSettings={}, adminCreds={username:'admin',password:'admin123'};
+var selectedImageFiles = [];
 
 function showErrorToast(msg) {
     var t=document.createElement('div');
@@ -102,6 +156,110 @@ function showErrorToast(msg) {
     t.textContent='Error: '+msg;
     document.body.appendChild(t);
     setTimeout(function(){ t.classList.add('toast-hide'); setTimeout(function(){ t.remove(); },200); },4000);
+}
+
+function handleImageSelect(event) {
+    var files = Array.from(event.target.files);
+    selectedImageFiles = selectedImageFiles.concat(files);
+    updateImagePreview();
+}
+
+function updateImagePreview() {
+    var previewArea = document.getElementById('imagePreviewArea');
+    previewArea.innerHTML = '';
+    if(selectedImageFiles.length === 0) {
+        previewArea.innerHTML = '<div style="color:#9CA3AF; font-size:12px;">No images selected. Click above to choose photos from your device.</div>';
+        return;
+    }
+    selectedImageFiles.forEach(function(file, index) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var wrapper = document.createElement('div');
+            wrapper.className = 'img-preview-wrapper';
+            var img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'preview-img';
+            var removeBtn = document.createElement('button');
+            removeBtn.textContent = 'x';
+            removeBtn.className = 'remove-img-btn';
+            removeBtn.onclick = (function(i) { return function() { removeImage(i); }; })(index);
+            wrapper.appendChild(img);
+            wrapper.appendChild(removeBtn);
+            previewArea.appendChild(wrapper);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function removeImage(index) {
+    selectedImageFiles.splice(index, 1);
+    updateImagePreview();
+    document.getElementById('imageInput').value = '';
+}
+
+async function uploadImages() {
+    if(selectedImageFiles.length === 0) return [];
+    var urls = [];
+    var progressBar = document.getElementById('uploadProgressBar');
+    var progressDiv = document.getElementById('uploadProgress');
+    progressDiv.style.display = 'block';
+    for(var i = 0; i < selectedImageFiles.length; i++) {
+        var file = selectedImageFiles[i];
+        var timestamp = Date.now();
+        var randomStr = Math.random().toString(36).substring(2, 8);
+        var filename = 'animals/' + timestamp + '_' + randomStr + '_' + file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+        var storageRef = storage.ref().child(filename);
+        var uploadTask = storageRef.put(file);
+        await new Promise(function(resolve, reject) {
+            uploadTask.on('state_changed', function(snapshot) {
+                var percent = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                progressBar.style.width = percent + '%';
+            }, function(error) { reject(error); }, function() {
+                uploadTask.snapshot.ref.getDownloadURL().then(function(downloadURL) {
+                    urls.push(downloadURL);
+                    resolve();
+                });
+            });
+        });
+    }
+    progressDiv.style.display = 'none';
+    progressBar.style.width = '0%';
+    return urls;
+}
+
+async function addAnimal(e) {
+    e.preventDefault();
+    var submitBtn = document.getElementById('submitBtn');
+    var originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Uploading images...';
+    submitBtn.disabled = true;
+    
+    try {
+        var imageUrls = await uploadImages();
+        var na = {
+            id: Date.now(),
+            name: document.getElementById('aName').value,
+            type: document.getElementById('aType').value,
+            breed: document.getElementById('aBreed').value,
+            age: document.getElementById('aAge').value,
+            price: parseInt(document.getElementById('aPrice').value),
+            location: document.getElementById('aLocation').value,
+            stock: parseInt(document.getElementById('aStock').value) || 1,
+            images: imageUrls.length > 0 ? imageUrls : ['https://images.unsplash.com/photo-1535295972055-1c762f4483e4?w=600'],
+            status: document.getElementById('aStatus').value
+        };
+        await db.collection('animals').doc(String(na.id)).set(na);
+        document.getElementById('addForm').reset();
+        selectedImageFiles = [];
+        updateImagePreview();
+        loadAllData();
+        showAlert('Animal added successfully! Images uploaded to cloud storage.');
+    } catch(err) {
+        showErrorToast(err.message);
+    } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
 }
 
 async function loadAllData() {
@@ -123,28 +281,24 @@ async function loadAllData() {
         localStorage.setItem('emailjsSettings', JSON.stringify(emailjsSettings));
         updateDashboard(); renderAnimals(); renderOrders();
         if(document.getElementById('tab-settings').classList.contains('active')) { loadSettings(); loadEmailJSForm(); }
-    } catch(e) { 
-        console.warn(e); 
-        toast("Sync issue - check Firestore rules. Make sure rules allow writes without auth.");
-    }
+    } catch(e) { console.warn(e); toast("Sync issue - check Firestore rules."); }
 }
 
 function updateDashboard(){ document.getElementById('dTotal').textContent=animals.length; document.getElementById('dAvail').textContent=animals.filter(function(a){return a.status==='available';}).length; document.getElementById('dOrders').textContent=orders.length; document.getElementById('dPending').textContent=orders.filter(function(o){return o.status==='pending';}).length; }
-function renderAnimals(){ var q=(document.getElementById('animalSearch')?document.getElementById('animalSearch').value:'').toLowerCase(); var f=q?animals.filter(function(a){return a.name.toLowerCase().includes(q)||a.type.toLowerCase().includes(q);}):animals; document.getElementById('animalsTable').innerHTML=f.map(function(a){ var img=(a.images&&a.images[0])?a.images[0]:'https://via.placeholder.com/50'; return '<tr><td><img src="'+img+'" style="width:50px;height:40px;object-fit:cover;border-radius:6px;"></td><td><strong>'+a.name+'</strong></td><td>'+a.type+'</td><td>'+a.breed+'</td><td>KSh '+a.price.toLocaleString()+'</td><td>'+(a.stock||0)+'</td><td>'+(a.images?a.images.length:0)+' photos</td><td><span class="badge badge-'+a.status+'">'+a.status+'</span></td><td><button class="btn btn-edit" onclick="openEdit('+a.id+')">Edit</button> <button class="btn btn-danger" onclick="confirmAction(\'Delete?\',function(){removeAnimal('+a.id+')})">Del</button></td></tr>'; }).join('')||'<tr><td colspan="9">No animals yet. Add some.</td></tr>'; }
+function renderAnimals(){ var q=(document.getElementById('animalSearch')?document.getElementById('animalSearch').value:'').toLowerCase(); var f=q?animals.filter(function(a){return a.name.toLowerCase().includes(q)||a.type.toLowerCase().includes(q);}):animals; document.getElementById('animalsTable').innerHTML=f.map(function(a){ var img=(a.images&&a.images[0])?a.images[0]:'https://via.placeholder.com/50'; return '<tr><td style="padding:8px;"><img src="'+img+'" style="width:50px;height:40px;object-fit:cover;border-radius:6px;"></td><td><strong>'+a.name+'</strong></td><td>'+a.type+'</td><td>'+a.breed+'</td><td>KSh '+a.price.toLocaleString()+'</td><td>'+(a.stock||0)+'</td><td>'+(a.images?a.images.length:0)+' photos</td><td><span class="badge badge-'+a.status+'">'+a.status+'</span></td><td><button class="btn btn-edit" onclick="openEdit('+a.id+')">Edit</button> <button class="btn btn-danger" onclick="confirmAction(\'Delete?\',function(){removeAnimal('+a.id+')})">Del</button></td></tr>'; }).join('')||'<tr><td colspan="9" style="text-align:center;padding:20px;">No animals yet. Add some.</td></tr>'; }
 function openEdit(id){ var a=animals.find(function(x){return x.id===id;}); if(!a) return; document.getElementById('editId').value=a.id; document.getElementById('editName').value=a.name; document.getElementById('editType').value=a.type; document.getElementById('editBreed').value=a.breed; document.getElementById('editAge').value=a.age; document.getElementById('editPrice').value=a.price; document.getElementById('editStock').value=a.stock||0; document.getElementById('editLocation').value=a.location||''; document.getElementById('editStatus').value=a.status; document.getElementById('editModal').classList.add('show'); }
 function closeEditModal(){ document.getElementById('editModal').classList.remove('show'); }
 function saveEdit(e){ e.preventDefault(); var id=parseInt(document.getElementById('editId').value); var a=animals.find(function(x){return x.id===id;}); if(a){ a.name=document.getElementById('editName').value; a.type=document.getElementById('editType').value; a.breed=document.getElementById('editBreed').value; a.age=document.getElementById('editAge').value; a.price=parseInt(document.getElementById('editPrice').value); a.stock=parseInt(document.getElementById('editStock').value); a.location=document.getElementById('editLocation').value; a.status=document.getElementById('editStatus').value; db.collection('animals').doc(String(id)).set(a).then(function(){ closeEditModal(); loadAllData(); showAlert('Animal updated globally!'); }).catch(function(err){ showErrorToast(err.message); }); } }
 function removeAnimal(id){ db.collection('animals').doc(String(id)).delete().then(function(){ loadAllData(); toast('Deleted from cloud'); }).catch(function(err){ showErrorToast(err.message); }); }
-function renderOrders(){ var f=document.getElementById('orderFilter').value; var fl=f==='all'?orders.slice().reverse():orders.filter(function(o){return o.status===f;}).reverse(); document.getElementById('ordersTable').innerHTML=fl.length?fl.map(function(o){ var a=animals.find(function(x){return x.id===o.animalId;}); return '<tr><td>#'+o.id+'</td><td>'+(a?a.name:'?')+'</td><td>'+o.customerName+'</td><td>'+o.customerPhone+'</td><td>'+o.quantity+'</td><td><span class="badge badge-'+o.status+'">'+o.status+'</span></td><td>'+new Date(o.orderDate).toLocaleDateString()+'</td><td>'+(o.status==='pending'?'<button class="btn btn-success" onclick="updateOrder('+o.id+',\'confirmed\')">Confirm</button> <button class="btn btn-danger" onclick="updateOrder('+o.id+',\'cancelled\')">Cancel</button>':'-')+'</td></tr>'; }).join(''):'<tr><td colspan="8">No orders</td></tr>'; }
+function renderOrders(){ var f=document.getElementById('orderFilter').value; var fl=f==='all'?orders.slice().reverse():orders.filter(function(o){return o.status===f;}).reverse(); document.getElementById('ordersTable').innerHTML=fl.length?fl.map(function(o){ var a=animals.find(function(x){return x.id===o.animalId;}); return '<tr><td>#'+o.id+'</td><td>'+(a?a.name:'?')+'</td><td>'+o.customerName+'</td><td>'+o.customerPhone+'</td><td>'+o.quantity+'</td><td><span class="badge badge-'+o.status+'">'+o.status+'</span></td><td>'+new Date(o.orderDate).toLocaleDateString()+'</td><td>'+(o.status==='pending'?'<button class="btn btn-success" onclick="updateOrder('+o.id+',\'confirmed\')">Confirm</button> <button class="btn btn-danger" onclick="updateOrder('+o.id+',\'cancelled\')">Cancel</button>':'-')+'</td></tr>'; }).join(''):'<tr><td colspan="8" style="text-align:center;padding:20px;">No orders</td></tr>'; }
 function updateOrder(id,status){ var o=orders.find(function(x){return x.id===id;}); if(o){ o.status=status; db.collection('orders').doc(String(id)).set(o); var a=animals.find(function(x){return x.id===o.animalId;}); if(a){ a.status=status==='confirmed'?'sold':'available'; db.collection('animals').doc(String(a.id)).set(a); } loadAllData(); toast('Order '+status); } }
-function addAnimal(e){ e.preventDefault(); var urls=document.getElementById('aImages').value.split(',').map(function(u){return u.trim();}).filter(function(u){return u;}); var na={id:Date.now(),name:document.getElementById('aName').value,type:document.getElementById('aType').value,breed:document.getElementById('aBreed').value,age:document.getElementById('aAge').value,price:parseInt(document.getElementById('aPrice').value),location:document.getElementById('aLocation').value,stock:parseInt(document.getElementById('aStock').value)||1,images:urls.length?urls:['https://images.unsplash.com/photo-1535295972055-1c762f4483e4?w=600'],status:document.getElementById('aStatus').value}; db.collection('animals').doc(String(na.id)).set(na).then(function(){ document.getElementById('addForm').reset(); loadAllData(); showAlert('Animal added across all devices'); }).catch(function(err){ showErrorToast(err.message); }); }
 function loadSettings(){ document.getElementById('sName').value=settings.businessName||''; document.getElementById('sCurrency').value=settings.currency||'KSh'; document.getElementById('sPhone').value=settings.contactPhone||''; document.getElementById('sEmail').value=settings.contactEmail||''; document.getElementById('sLocation').value=settings.businessLocation||''; document.getElementById('sHours').value=settings.businessHours||''; if(adminCreds) document.getElementById('pCurrent').value=adminCreds.password; }
-function saveSettings(e){ e.preventDefault(); var newSettings={businessName:document.getElementById('sName').value,currency:document.getElementById('sCurrency').value,contactPhone:document.getElementById('sPhone').value,contactEmail:document.getElementById('sEmail').value,businessLocation:document.getElementById('sLocation').value,businessHours:document.getElementById('sHours').value}; db.collection('settings').doc('main').set(newSettings).then(function(){ settings=newSettings; toast('Business settings synced to cloud!'); }).catch(function(err){ showErrorToast('Firestore error: '+err.message+'. Update your Firestore rules to allow writes without auth.'); }); }
+function saveSettings(e){ e.preventDefault(); var newSettings={businessName:document.getElementById('sName').value,currency:document.getElementById('sCurrency').value,contactPhone:document.getElementById('sPhone').value,contactEmail:document.getElementById('sEmail').value,businessLocation:document.getElementById('sLocation').value,businessHours:document.getElementById('sHours').value}; db.collection('settings').doc('main').set(newSettings).then(function(){ settings=newSettings; toast('Business settings synced to cloud!'); }).catch(function(err){ showErrorToast('Firestore error: '+err.message); }); }
 function loadEmailJSForm(){ document.getElementById('ePublicKey').value=emailjsSettings.publicKey||''; document.getElementById('eServiceId').value=emailjsSettings.serviceId||''; document.getElementById('eTemplateId').value=emailjsSettings.templateId||''; document.getElementById('eAdminEmail').value=emailjsSettings.adminEmail||''; }
-function saveEmailJS(e){ e.preventDefault(); var newEmail={publicKey:document.getElementById('ePublicKey').value,serviceId:document.getElementById('eServiceId').value,templateId:document.getElementById('eTemplateId').value,adminEmail:document.getElementById('eAdminEmail').value}; db.collection('settings').doc('emailjs').set(newEmail).then(function(){ emailjsSettings=newEmail; localStorage.setItem('emailjsSettings',JSON.stringify(emailjsSettings)); toast('EmailJS config saved to cloud! Login page will use real 2FA now.'); }).catch(function(err){ showErrorToast('Firestore error: '+err.message+'. Update your Firestore rules: allow read, write: if true;'); }); }
+function saveEmailJS(e){ e.preventDefault(); var newEmail={publicKey:document.getElementById('ePublicKey').value,serviceId:document.getElementById('eServiceId').value,templateId:document.getElementById('eTemplateId').value,adminEmail:document.getElementById('eAdminEmail').value}; db.collection('settings').doc('emailjs').set(newEmail).then(function(){ emailjsSettings=newEmail; localStorage.setItem('emailjsSettings',JSON.stringify(emailjsSettings)); toast('EmailJS config saved to cloud! Login page will use real 2FA now.'); }).catch(function(err){ showErrorToast('Firestore error: '+err.message); }); }
 function testEmailJS(){ var s=emailjsSettings; if(!s.publicKey) return toast('Fill all EmailJS fields first'); var script=document.createElement('script'); script.src='https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js'; script.onload=function(){ emailjs.init(s.publicKey); emailjs.send(s.serviceId,s.templateId,{to_email:s.adminEmail,to_name:'Admin',code:'123456',expiry:'5 mins'}).then(function(){ showAlert('Test email sent to '+s.adminEmail+'! Check spam.'); }).catch(function(err){ showAlert('EmailJS error: '+err.text); }); }; document.head.appendChild(script); }
 function togglePass(id,btn){ var i=document.getElementById(id); if(i.type==='password'){ i.type='text'; btn.textContent='Hide'; }else{ i.type='password'; btn.textContent='Show'; } }
-function changePassword(e){ e.preventDefault(); if(!adminCreds) return toast('Loading credentials...'); if(document.getElementById('pCurrent').value !== adminCreds.password) return toast('Wrong current password!'); var newPwd=document.getElementById('pNew').value; if(newPwd !== document.getElementById('pConfirm').value) return toast('Passwords mismatch'); if(newPwd.length<6) return toast('Min 6 chars'); adminCreds.password=newPwd; db.collection('settings').doc('credentials').set(adminCreds).then(function(){ localStorage.setItem('adminCredentials',JSON.stringify(adminCreds)); document.getElementById('passForm').reset(); document.getElementById('pCurrent').value=newPwd; showAlert('Password changed! Now you can login from any device with new password.'); }).catch(function(err){ showErrorToast('Firestore error: '+err.message+' - Update your Firestore rules to allow writes.'); }); }
+function changePassword(e){ e.preventDefault(); if(!adminCreds) return toast('Loading credentials...'); if(document.getElementById('pCurrent').value !== adminCreds.password) return toast('Wrong current password!'); var newPwd=document.getElementById('pNew').value; if(newPwd !== document.getElementById('pConfirm').value) return toast('Passwords mismatch'); if(newPwd.length<6) return toast('Min 6 chars'); adminCreds.password=newPwd; db.collection('settings').doc('credentials').set(adminCreds).then(function(){ localStorage.setItem('adminCredentials',JSON.stringify(adminCreds)); document.getElementById('passForm').reset(); document.getElementById('pCurrent').value=newPwd; showAlert('Password changed! Now you can login from any device with new password.'); }).catch(function(err){ showErrorToast('Firestore error: '+err.message); }); }
 function resetAllDefaults(){ var defCreds={username:'admin',password:'admin123'}; var defEmailJS={publicKey:'',serviceId:'',templateId:'',adminEmail:'admin@chissano.co.ke'}; Promise.all([ db.collection('settings').doc('credentials').set(defCreds), db.collection('settings').doc('emailjs').set(defEmailJS) ]).then(function(){ adminCreds=defCreds; emailjsSettings=defEmailJS; localStorage.setItem('adminCredentials',JSON.stringify(adminCreds)); localStorage.setItem('emailjsSettings',JSON.stringify(emailjsSettings)); showAlert('Reset complete! Use admin/admin123 and re-configure EmailJS.'); setTimeout(function(){logout();}, 1500); }).catch(function(err){ showErrorToast('Reset error: '+err.message); }); }
 function logout(){ localStorage.removeItem('adminToken'); localStorage.removeItem('adminTokenExpiry'); window.location.href='login.html'; }
 function switchTab(tab){ document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');}); document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');}); document.getElementById('tab-'+tab).classList.add('active'); event.target.classList.add('active'); var titles={dashboard:'Dashboard',animals:'Animals',orders:'Orders',add:'Add Animal',settings:'Settings'}; document.getElementById('tabTitle').textContent=titles[tab]; if(tab==='dashboard') updateDashboard(); if(tab==='animals') renderAnimals(); if(tab==='orders') renderOrders(); if(tab==='settings'){ loadSettings(); loadEmailJSForm(); } }
