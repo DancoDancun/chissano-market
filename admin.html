@@ -47,6 +47,8 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; } .form-group { margin-bottom: 14px; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 12px; color: #374151; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 6px; font-size: 13px; font-family: 'Poppins', sans-serif; outline: none; }
+        .status-display { background: #F3F4F6; padding: 10px 14px; border-radius: 6px; font-size: 13px; color: #374151; border: 1px solid #E5E7EB; }
+        .status-display span { font-weight: 600; color: #059669; }
         .pass-wrapper { position: relative; } .pass-wrapper input { padding-right: 55px !important; }
         .pass-toggle { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); background: #F3F4F6; border: 1px solid #D1D5DB; border-radius: 6px; cursor: pointer; font-size: 11px; padding: 5px 10px; font-family: 'Poppins', sans-serif; color: #374151; }
         .section { display: none; } .section.active { display: block; }
@@ -73,6 +75,7 @@
         .image-input-label { cursor: pointer; display: inline-block; color: var(--gray-500); font-size: 13px; }
         .remove-img-btn { position: absolute; top: -5px; right: -5px; background: #EF4444; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
         .img-preview-wrapper { position: relative; display: inline-block; margin-right: 8px; margin-bottom: 8px; }
+        .info-text { font-size: 11px; color: #6B7280; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -93,8 +96,8 @@
 <div class="main-content">
     <div class="top-bar"><h2 id="tabTitle">Dashboard</h2><div class="user-info"><div class="avatar" id="userAvatar">A</div><span id="userName">Admin</span></div></div>
     <div id="tab-dashboard" class="section active"><div class="stats-grid"><div class="stat-card"><div class="label">Total Animals</div><div class="value" id="dTotal">-</div></div><div class="stat-card"><div class="label">Available</div><div class="value" id="dAvail">-</div></div><div class="stat-card"><div class="label">Total Orders</div><div class="value" id="dOrders">-</div></div><div class="stat-card"><div class="label">Pending</div><div class="value" id="dPending">-</div></div></div></div>
-    <div id="tab-animals" class="section"><div class="card"><div class="card-header"><h3>All Animals</h3><input type="text" placeholder="Search..." oninput="renderAnimals()" id="animalSearch" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;width:200px;"></div><div class="card-body"><table><thead><tr><th>Image</th><th>Name</th><th>Type</th><th>Breed</th><th>Price</th><th>Stock</th><th>Images</th><th>Status</th><th>Actions</th></tr></thead><tbody id="animalsTable"></tbody></table></div></div></div>
-    <div id="tab-orders" class="section"><div class="card"><div class="card-header"><h3>All Orders</h3><select onchange="renderOrders()" id="orderFilter" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;"><option value="all">All</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div><div class="card-body"><tr><thead><tr><th>Order ID</th><th>Animal</th><th>Customer</th><th>Phone</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="ordersTable"></tbody></table></div></div></div>
+    <div id="tab-animals" class="section"><div class="card"><div class="card-header"><h3>All Animals</h3><input type="text" placeholder="Search..." oninput="renderAnimals()" id="animalSearch" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;width:200px;"></div><div class="card-body"></table><thead><tr><th>Image</th><th>Name</th><th>Type</th><th>Breed</th><th>Price</th><th>Stock</th><th>Images</th><th>Status</th><th>Actions</th></tr></thead><tbody id="animalsTable"></tbody></table></div></div></div>
+    <div id="tab-orders" class="section"><div class="card"><div class="card-header"><h3>All Orders</h3><select onchange="renderOrders()" id="orderFilter" style="padding:8px;border:1px solid #E5E7EB;border-radius:6px;"><option value="all">All</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="cancelled">Cancelled</option></select></div><div class="card-body"><table><thead><tr><th>Order ID</th><th>Animal</th><th>Customer</th><th>Phone</th><th>Qty</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody id="ordersTable"></tbody></tr></div></div></div>
     <div id="tab-add" class="section">
         <div class="card">
             <div class="card-header"><h3>Add New Animal</h3></div>
@@ -114,7 +117,6 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group"><label>Stock *</label><input type="number" id="aStock" value="1" min="1" required></div>
-                        <div class="form-group"><label>Status</label><select id="aStatus"><option value="available">Available</option><option value="reserved">Reserved</option><option value="sold">Sold</option></select></div>
                     </div>
                     
                     <div class="form-group">
@@ -143,12 +145,11 @@
         <div class="card"><div class="card-header"><h3>Reset to Default</h3></div><div class="card-body"><p style="color:#6B7280;font-size:13px;">Reset credentials to: admin / admin123 (also clears 2FA settings from cloud)</p><button class="btn btn-warning" onclick="confirmAction('Reset password and EmailJS config to defaults?',function(){resetAllDefaults()})">Reset to Default (admin/admin123)</button></div></div>
     </div>
 </div>
-<div class="edit-modal" id="editModal"><div class="edit-modal-box"><h2>Edit Animal</h2><form onsubmit="saveEdit(event)"><input type="hidden" id="editId"><div class="form-row"><div class="form-group"><label>Name</label><input type="text" id="editName" required></div><div class="form-group"><label>Type</label><select id="editType" required><option value="cattle">Cattle</option><option value="goats">Goats</option><option value="sheep">Sheep</option><option value="poultry">Poultry</option><option value="pigs">Pigs</option><option value="dogs">Dogs</option><option value="cats">Cats</option></select></div></div><div class="form-row"><div class="form-group"><label>Breed</label><input type="text" id="editBreed" required></div><div class="form-group"><label>Age</label><input type="text" id="editAge" required></div></div><div class="form-row"><div class="form-group"><label>Price (KSh)</label><input type="number" id="editPrice" required></div><div class="form-group"><label>Stock</label><input type="number" id="editStock" min="0" required></div></div><div class="form-row"><div class="form-group"><label>Location</label><input type="text" id="editLocation" required></div><div class="form-group"><label>Status</label><select id="editStatus"><option value="available">Available</option><option value="reserved">Reserved</option><option value="sold">Sold</option></select></div></div><button type="submit" class="btn btn-primary" style="width:100%;">Save and Sync</button><button type="button" class="btn btn-danger" style="margin-top:10px; width:100%;" onclick="closeEditModal()">Cancel</button></form></div></div>
+<div class="edit-modal" id="editModal"><div class="edit-modal-box"><h2>Edit Animal</h2><form onsubmit="saveEdit(event)"><input type="hidden" id="editId"><div class="form-row"><div class="form-group"><label>Name</label><input type="text" id="editName" required></div><div class="form-group"><label>Type</label><select id="editType" required><option value="cattle">Cattle</option><option value="goats">Goats</option><option value="sheep">Sheep</option><option value="poultry">Poultry</option><option value="pigs">Pigs</option><option value="dogs">Dogs</option><option value="cats">Cats</option></select></div></div><div class="form-row"><div class="form-group"><label>Breed</label><input type="text" id="editBreed" required></div><div class="form-group"><label>Age</label><input type="text" id="editAge" required></div></div><div class="form-row"><div class="form-group"><label>Price (KSh)</label><input type="number" id="editPrice" required></div><div class="form-group"><label>Stock</label><input type="number" id="editStock" min="0" required></div></div><div class="form-row"><div class="form-group"><label>Location</label><input type="text" id="editLocation" required></div></div><div class="form-group"><label>Status (Auto-calculated)</label><div class="status-display" id="statusDisplay">Will be updated based on stock</div><div class="info-text">Status is automatically set to "available" when stock > 0, and "sold" when stock = 0</div></div><button type="submit" class="btn btn-primary" style="width:100%;">Save and Sync</button><button type="button" class="btn btn-danger" style="margin-top:10px; width:100%;" onclick="closeEditModal()">Cancel</button></form></div></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box"><h3>Confirm Action</h3><p id="confirmMessage"></p><div class="confirm-buttons"><button class="btn-cancel-custom" onclick="closeConfirm()">Cancel</button><button class="btn-confirm-custom" onclick="executeConfirm()">Confirm</button></div></div></div>
 <div class="alert-overlay" id="alertOverlay"><div class="alert-box"><h3>Success</h3><p id="alertMessage"></p><button onclick="closeAlert()">OK</button></div></div>
 
 <script>
-// IMGBB API KEY
 const IMGBB_API_KEY = '921696b7e1de8c32a706f931b5cbc581';
 
 function goBackToSite() {
@@ -240,7 +241,6 @@ async function uploadToImgBB(file) {
     return new Promise(function(resolve, reject) {
         var formData = new FormData();
         formData.append('image', file);
-        
         fetch('https://api.imgbb.com/1/upload?key=' + IMGBB_API_KEY, {
             method: 'POST',
             body: formData
@@ -253,9 +253,7 @@ async function uploadToImgBB(file) {
                 reject(new Error(data.error ? data.error.message : 'Upload failed'));
             }
         })
-        .catch(function(error) {
-            reject(error);
-        });
+        .catch(function(error) { reject(error); });
     });
 }
 
@@ -291,6 +289,7 @@ async function addAnimal(e) {
     submitBtn.disabled = true;
     try {
         var imageUrls = await uploadImages();
+        var stock = parseInt(document.getElementById('aStock').value) || 1;
         var animalData = {
             id: Date.now(),
             name: document.getElementById('aName').value.trim(),
@@ -299,9 +298,9 @@ async function addAnimal(e) {
             age: document.getElementById('aAge').value.trim(),
             price: parseInt(document.getElementById('aPrice').value),
             location: document.getElementById('aLocation').value.trim(),
-            stock: parseInt(document.getElementById('aStock').value) || 1,
+            stock: stock,
             images: imageUrls.length > 0 ? imageUrls : [],
-            status: document.getElementById('aStatus').value
+            status: stock > 0 ? 'available' : 'sold'
         };
         await db.collection('animals').doc(String(animalData.id)).set(animalData);
         document.getElementById('addForm').reset();
@@ -360,7 +359,7 @@ function renderAnimals(){
     document.getElementById('animalsTable').innerHTML=f.map(function(a){ 
         var img=(a.images&&a.images[0])?a.images[0]:'https://via.placeholder.com/50';
         var stock = a.stock || 0;
-        var displayStatus = (stock === 0 && a.status === 'available') ? 'sold' : a.status;
+        var displayStatus = (stock === 0) ? 'sold' : (a.status === 'sold' && stock > 0 ? 'available' : a.status);
         return '<tr>' +
             '<td style="padding:8px;"><img src="'+img+'" style="width:50px;height:40px;object-fit:cover;border-radius:6px;"></td>' +
             '<td><strong>'+a.name+'</strong></td>' +
@@ -386,10 +385,14 @@ function openEdit(id){
     document.getElementById('editPrice').value=a.price; 
     document.getElementById('editStock').value=a.stock||0; 
     document.getElementById('editLocation').value=a.location||''; 
-    document.getElementById('editStatus').value=a.status; 
+    var stock = a.stock || 0;
+    var predictedStatus = stock > 0 ? 'available' : 'sold';
+    document.getElementById('statusDisplay').innerHTML = '<span>' + predictedStatus.toUpperCase() + '</span> (auto-calculated from stock)';
     document.getElementById('editModal').classList.add('show'); 
 }
+
 function closeEditModal(){ document.getElementById('editModal').classList.remove('show'); }
+
 function saveEdit(e){ 
     e.preventDefault(); 
     var id=parseInt(document.getElementById('editId').value); 
@@ -402,16 +405,14 @@ function saveEdit(e){
         a.price=parseInt(document.getElementById('editPrice').value); 
         a.stock=parseInt(document.getElementById('editStock').value); 
         a.location=document.getElementById('editLocation').value; 
-        var newStatus = document.getElementById('editStatus').value;
-        if (a.stock === 0 && newStatus === 'available') {
-            newStatus = 'sold';
-        }
-        a.status = newStatus;
+        // Auto-set status based on stock
+        a.status = a.stock > 0 ? 'available' : 'sold';
         db.collection('animals').doc(String(id)).set(a).then(function(){ 
-            closeEditModal(); loadAllData(); showAlert('Animal updated globally!'); 
+            closeEditModal(); loadAllData(); showAlert('Animal updated! Status auto-set to ' + a.status); 
         }).catch(function(err){ showErrorToast(err.message); }); 
     } 
 }
+
 function removeAnimal(id){ db.collection('animals').doc(String(id)).delete().then(function(){ loadAllData(); toast('Deleted from cloud'); }).catch(function(err){ showErrorToast(err.message); }); }
 
 function renderOrders(){ 
@@ -429,7 +430,7 @@ function renderOrders(){
             '<td>'+new Date(o.orderDate).toLocaleDateString()+'</td>' +
             '<td>'+(o.status==='pending'?'<button class="btn btn-success" onclick="updateOrder('+o.id+',\'confirmed\')">Confirm</button> <button class="btn btn-danger" onclick="updateOrder('+o.id+',\'cancelled\')">Cancel</button>':'-')+'</td>' +
         '</tr>'; 
-    }).join(''):'<tr><td colspan="8" style="text-align:center;padding:20px;">No orders</td></tr>'; 
+    }).join(''):'<tr><td colspan="8" style="text-align:center;padding:20px;">No orders</td></table>'; 
 }
 
 async function updateOrder(id, status){ 
@@ -440,18 +441,10 @@ async function updateOrder(id, status){
         var a=animals.find(function(x){return x.id===o.animalId;}); 
         if(a && status === 'confirmed'){ 
             var newStock = (a.stock || 1) - (o.quantity || 1);
-            if (newStock <= 0) {
-                a.stock = 0;
-                a.status = 'sold';
-            } else {
-                a.stock = newStock;
-                if (a.status === 'sold') a.status = 'available';
-            }
+            a.stock = newStock;
+            a.status = newStock > 0 ? 'available' : 'sold';
             await db.collection('animals').doc(String(a.id)).set(a);
-            toast('Order confirmed! Stock updated to ' + a.stock);
-        } else if (a && status === 'cancelled') {
-            // Optionally restock if cancelled
-            toast('Order cancelled');
+            toast('Order confirmed! Stock updated to ' + a.stock + ', Status: ' + a.status);
         }
         loadAllData(); 
     } 
